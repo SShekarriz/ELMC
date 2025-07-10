@@ -1,0 +1,134 @@
+user_genome	reference_genome	fastani_ani	fastani_af	reference_taxonomy	satisfies_gtdb_circumscription_criteria
+bin.1	no result	no result	no result	no result
+bin.10	no result	no result	no result	no result
+bin.100	no result	no result	no result	no result
+bin.101	no result	no result	no result	no result
+bin.102	no result	no result	no result	no result
+bin.103	no result	no result	no result	no result
+bin.104	no result	no result	no result	no result
+bin.105	no result	no result	no result	no result
+bin.106	no result	no result	no result	no result
+bin.107	no result	no result	no result	no result
+bin.108	no result	no result	no result	no result
+bin.109	no result	no result	no result	no result
+bin.11	no result	no result	no result	no result
+bin.110	no result	no result	no result	no result
+bin.111	no result	no result	no result	no result
+bin.112	no result	no result	no result	no result
+bin.113	no result	no result	no result	no result
+bin.114	GCF_000364245.1	98.0924	0.82	d__Bacteria;p__Firmicutes_A;c__Clostridia;o__Lachnospirales;f__Lachnospiraceae;g__Schaedlerella;s__Schaedlerella sp000364245	True
+bin.115	no result	no result	no result	no result
+bin.116	no result	no result	no result	no result
+bin.117	GCF_000403455.2	98.8633	0.92	d__Bacteria;p__Firmicutes_A;c__Clostridia;o__Lachnospirales;f__Lachnospiraceae;g__Dorea;s__Dorea sp000403455	True
+bin.118	no result	no result	no result	no result
+bin.119	no result	no result	no result	no result
+bin.12	no result	no result	no result	no result
+bin.120	no result	no result	no result	no result
+bin.121	no result	no result	no result	no result
+bin.122	no result	no result	no result	no result
+bin.123	no result	no result	no result	no result
+bin.124	GCF_000403355.2	96.8451	0.8	d__Bacteria;p__Actinobacteriota;c__Coriobacteriia;o__Coriobacteriales;f__Eggerthellaceae;g__Adlercreutzia;s__Adlercreutzia caecimuris	True
+bin.125	no result	no result	no result	no result
+bin.126	no result	no result	no result	no result
+bin.127	no result	no result	no result	no result
+bin.128	no result	no result	no result	no result
+bin.129	no result	no result	no result	no result
+bin.13	no result	no result	no result	no result
+bin.130	no result	no result	no result	no result
+bin.131	no result	no result	no result	no result
+bin.132	no result	no result	no result	no result
+bin.133	no result	no result	no result	no result
+bin.14	no result	no result	no result	no result
+bin.15	no result	no result	no result	no result
+bin.16	GCF_003833075.1	97.9353	0.87	d__Bacteria;p__Bacteroidota;c__Bacteroidia;o__Bacteroidales;f__Muribaculaceae;g__CAG-485;s__CAG-485 sp002362485	True
+bin.17	no result	no result	no result	no result
+bin.18	no result	no result	no result	no result
+bin.19	no result	no result	no result	no result
+bin.2	no result	no result	no result	no result
+bin.20	no result	no result	no result	no result
+bin.21	GCA_002311155.1	98.5792	0.79	d__Bacteria;p__Firmicutes;c__Bacilli;o__Haloplasmatales;f__Turicibacteraceae;g__Turicibacter;s__Turicibacter sp002311155	True
+bin.22	no result	no result	no result	no result
+bin.23	no result	no result	no result	no result
+bin.24	GCA_002490635.1	98.6349	0.94	d__Bacteria;p__Bacteroidota;c__Bacteroidia;o__Bacteroidales;f__Muribaculaceae;g__CAG-873;s__CAG-873 sp002490635	True
+bin.25	no result	no result	no result	no result
+bin.26	no result	no result	no result	no result
+bin.27	no result	no result	no result	no result
+bin.28	no result	no result	no result	no result
+bin.29	no result	no result	no result	no result
+bin.3	no result	no result	no result	no result
+bin.30	no result	no result	no result	no result
+bin.31	no result	no result	no result	no result
+bin.32	no result	no result	no result	no result
+bin.33	GCF_001436695.1	98.3402	0.83	d__Bacteria;p__Firmicutes;c__Bacilli;o__Lactobacillales;f__Lactobacillaceae;g__Lactobacillus;s__Lactobacillus taiwanensis	True
+bin.34	no result	no result	no result	no result
+bin.35	no result	no result	no result	no result
+bin.36	no result	no result	no result	no result
+bin.37	no result	no result	no result	no result
+bin.38	no result	no result	no result	no result
+bin.39	GCF_001591685.1	96.9333	0.79	d__Bacteria;p__Firmicutes;c__Bacilli;o__Lactobacillales;f__Lactobacillaceae;g__Ligilactobacillus;s__Ligilactobacillus murinus	True
+bin.4	GCA_002492185.1	93.0471	0.85	d__Bacteria;p__Firmicutes;c__Bacilli;o__Lactobacillales;f__Streptococcaceae;g__Lactococcus;s__Lactococcus sp002492185	False
+bin.40	no result	no result	no result	no result
+bin.41	no result	no result	no result	no result
+bin.42	GCF_002950215.1	97.992	0.86	d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Enterobacteriaceae;g__Escherichia;s__Escherichia flexneri	True
+bin.43	no result	no result	no result	no result
+bin.44	no result	no result	no result	no result
+bin.45	no result	no result	no result	no result
+bin.46	no result	no result	no result	no result
+bin.47	no result	no result	no result	no result
+bin.48	no result	no result	no result	no result
+bin.49	no result	no result	no result	no result
+bin.5	no result	no result	no result	no result
+bin.50	GCA_001689485.1	98.9385	0.87	d__Bacteria;p__Bacteroidota;c__Bacteroidia;o__Bacteroidales;f__Muribaculaceae;g__UBA7173;s__UBA7173 sp001689485	True
+bin.51	no result	no result	no result	no result
+bin.52	no result	no result	no result	no result
+bin.53	no result	no result	no result	no result
+bin.54	no result	no result	no result	no result
+bin.55	GCF_004801635.1	98.8816	0.88	d__Bacteria;p__Bacteroidota;c__Bacteroidia;o__Bacteroidales;f__Muribaculaceae;g__Muribaculum;s__Muribaculum sp002473395	True
+bin.56	GCF_003762715.1	98.2059	0.94	d__Bacteria;p__Bacteroidota;c__Bacteroidia;o__Bacteroidales;f__Muribaculaceae;g__Paramuribaculum;s__Paramuribaculum sp001689565	True
+bin.57	no result	no result	no result	no result
+bin.58	GCF_003364315.1	99.1318	0.94	d__Bacteria;p__Campylobacterota;c__Campylobacteria;o__Campylobacterales;f__Helicobacteraceae;g__Helicobacter_D;s__Helicobacter_D ganmani	True
+bin.59	no result	no result	no result	no result
+bin.6	no result	no result	no result	no result
+bin.60	GCF_003072625.1	95.7462	0.85	d__Bacteria;p__Firmicutes;c__Bacilli;o__Lactobacillales;f__Lactobacillaceae;g__Limosilactobacillus;s__Limosilactobacillus reuteri_D	True
+bin.61	no result	no result	no result	no result
+bin.62	no result	no result	no result	no result
+bin.63	no result	no result	no result	no result
+bin.64	no result	no result	no result	no result
+bin.65	no result	no result	no result	no result
+bin.66	no result	no result	no result	no result
+bin.67	no result	no result	no result	no result
+bin.68	no result	no result	no result	no result
+bin.69	GCF_004102785.1	98.6946	0.93	d__Bacteria;p__Bacteroidota;c__Bacteroidia;o__Bacteroidales;f__Muribaculaceae;g__UBA7173;s__UBA7173 sp002491305	True
+bin.7	no result	no result	no result	no result
+bin.70	no result	no result	no result	no result
+bin.71	no result	no result	no result	no result
+bin.72	no result	no result	no result	no result
+bin.73	no result	no result	no result	no result
+bin.74	no result	no result	no result	no result
+bin.75	no result	no result	no result	no result
+bin.76	GCF_000403475.2	98.566	0.87	d__Bacteria;p__Firmicutes_A;c__Clostridia;o__Lachnospirales;f__Lachnospiraceae;g__Dorea;s__Dorea sp000403475	True
+bin.77	no result	no result	no result	no result
+bin.78	no result	no result	no result	no result
+bin.79	no result	no result	no result	no result
+bin.8	no result	no result	no result	no result
+bin.80	no result	no result	no result	no result
+bin.81	GCF_000422625.1	97.2274	0.89	d__Bacteria;p__Actinobacteriota;c__Coriobacteriia;o__Coriobacteriales;f__Eggerthellaceae;g__Adlercreutzia;s__Adlercreutzia mucosicola	True
+bin.82	no result	no result	no result	no result
+bin.83	GCF_004793465.1	96.7979	0.77	d__Bacteria;p__Actinobacteriota;c__Coriobacteriia;o__Coriobacteriales;f__Eggerthellaceae;g__Adlercreutzia;s__Adlercreutzia sp004793465	True
+bin.84	no result	no result	no result	no result
+bin.85	no result	no result	no result	no result
+bin.86	GCF_000403435.2	98.8085	0.92	d__Bacteria;p__Firmicutes_A;c__Clostridia;o__Oscillospirales;f__Oscillospiraceae;g__Oscillibacter;s__Oscillibacter sp000403435	True
+bin.87	no result	no result	no result	no result
+bin.88	no result	no result	no result	no result
+bin.89	no result	no result	no result	no result
+bin.9	no result	no result	no result	no result
+bin.90	no result	no result	no result	no result
+bin.91	no result	no result	no result	no result
+bin.92	no result	no result	no result	no result
+bin.93	no result	no result	no result	no result
+bin.94	no result	no result	no result	no result
+bin.95	no result	no result	no result	no result
+bin.96	no result	no result	no result	no result
+bin.97	no result	no result	no result	no result
+bin.98	no result	no result	no result	no result
+bin.99	no result	no result	no result	no result
