@@ -1,0 +1,14 @@
+---
+title: "parse input files"
+output: html_document
+date: "2025-07-10"
+---
+
+Here we are reading all results and mapfiles. creating required input files
+for functions and analyses
+
+```{r}
+
+library(tidyverse)
+
+```
