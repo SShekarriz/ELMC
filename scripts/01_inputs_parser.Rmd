@@ -12,3 +12,22 @@ for functions and analyses
 library(tidyverse)
 
 ```
+
+## Mapfile
+
+```{r}
+
+mapfile <- read.csv("../data/mapfile.txt", sep = "\t")
+data <- read.csv("../data/read_counts.txt", 
+                 header = F, sep = ":")
+data %>%
+  filter(grepl("_R1.fastq.gz", V1)) %>%
+  mutate(Sample= gsub("_R1.fastq.gz", "", V1)) %>%
+  rename(Reads=V2) %>%
+  left_join(mapfile) %>%
+  select(Sample, Reads, Group, Isolator, Cage, Category) %>%
+write.table("../data/clean/mapfile.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+
+```
