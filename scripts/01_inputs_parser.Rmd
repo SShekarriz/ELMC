@@ -29,5 +29,24 @@ data %>%
 write.table("../data/clean/mapfile.txt", sep = "\t", 
             row.names = F, quote = F)
 
+```
+
+## MAG data
+bins quality and taxonomy
+```{r}
+
+bin.qualy <- read.csv("../Results/Assembly/bins_quality.txt", sep = "\t")
+bin.taxa <- read.csv("../Results/Assembly/bins_taxonomy.txt", sep = "\t")
+
+bin.qualy %>%
+  select(BinLab, Completeness, Contamination) %>%
+  left_join(bin.taxa %>%
+            select(BinLab, Phylum:Species)) %>%
+write.table("../data/clean/binQT.txt", sep = "\t", 
+            row.names = F, quote = F)
 
 ```
+
+
+
+
