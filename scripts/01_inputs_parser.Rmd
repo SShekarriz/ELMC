@@ -1,0 +1,131 @@
+---
+title: "parse input files"
+output: html_document
+date: "2025-07-10"
+---
+
+Here we are reading all results and mapfiles. creating required input files
+for functions and analyses
+
+```{r}
+
+library(tidyverse)
+#load functions
+source('./functions.R')
+
+```
+
+## Mapfile
+###########################################################
+One of parentA sample has a very low depth of sequencing
+this must be removed from analyses
+filter(Sample != "A1E10M")
+
+```{r}
+
+mapfile <- read.csv("../data/mapfile.txt", sep = "\t")
+data <- read.csv("../data/read_counts.txt", 
+                 header = F, sep = ":")
+data %>%
+  filter(grepl("_R1.fastq.gz", V1)) %>%
+  mutate(Sample= gsub("_R1.fastq.gz", "", V1)) %>%
+  rename(Reads=V2) %>%
+  left_join(mapfile) %>%
+  select(Sample, Reads, Group, Isolator, Cage, Category) %>%
+write.table("../data/clean/mapfile.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+```
+
+## MAG data
+
+bins quality and taxonomy
+```{r}
+
+bin.qualy <- read.csv("../Results/Assembly/bins_quality.txt", sep = "\t")
+bin.taxa <- read.csv("../Results/Assembly/bins_taxonomy.txt", sep = "\t")
+
+bin.qualy %>%
+  select(BinLab, Completeness, Contamination) %>%
+  left_join(bin.taxa %>%
+            select(BinLab, Phylum:Species)) %>%
+write.table("../data/clean/binQT.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+```
+
+bins 1x coverage data across all samples. this is rarefied reads to lowest number
+```{r}
+
+contigs <- read.csv("../Results/Assembly/contig_in_bins_anvi.txt", sep = "\t",
+                    header = F)
+colnames(contigs) <- c("contig", "BinLab")
+
+cover_parser(path = "../Results/p_map_subset/contigs_1k",
+             patt= "_perfect.cover") %>%
+  # adding bin info to contigs
+  mutate(Don= gsub("_pool__.*", "", contig)) %>%
+  left_join(contigs) %>%
+  # define contigs outside of bins
+  mutate(BinLab= case_when(is.na(BinLab) ~ paste(Don,"UnBin", sep = "_"),
+                           TRUE ~ paste(BinLab))) %>%
+  # Convert columns with numeric characters to numeric type
+  mutate(across(everything(), ~ if (all(
+    grepl("^\\s*-?\\d+(\\.\\d+)?\\s*$", .,
+          perl = TRUE))) as.numeric(.) else .)) %>%
+  group_by(Sample, BinLab) %>%
+  summarise(
+    bin_len = sum(endpos),
+    bin_covbases = sum(covbases),
+    bin_numreads = sum(numreads),
+    bin_coverage = bin_covbases / bin_len * 100,
+    .groups = "drop"
+  ) %>%
+  mutate(Sample = gsub("sub_", "", Sample)) %>%
+  mutate(coverage = round(bin_coverage, digits = 2)) %>%
+  rename(feature="BinLab") %>%
+  select(Sample, feature, coverage) %>%
+write.table("../data/clean/binCover.txt", sep = "\t", 
+            row.names = F, quote = F)
+```
+
+
+## Gene data
+
+gff file
+```{r}
+
+gff_cols <- c("seqname","source","feature","start","end","score","strand",
+              "frame","attributes")
+read.delim("../Results/p_map_subset/Donor_db.gff",
+           header=F, comment.char="#", ) -> gff
+colnames(gff) <- gff_cols
+
+# removing sequence info from the end of the gff file
+gff %>%
+  mutate(ID= gsub(";.*", "", attributes)) %>%
+  mutate(gene_id=gsub("ID=", "", ID)) %>%
+  # annotated regions that have only contig info in attributes. 
+  # I don't need them
+  filter(feature!= "region") %>%
+  filter(feature == "CDS")-> gff
+write.table(gff, "../data/clean/gene_db.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+```
+
+Gene 1x coverage across all samples. reads rarefied to the lowest depth.
+```{r}
+
+cover_parser(path = "../Results/p_map_subset/genes",
+             patt= "_perfect.cover") %>%
+  dplyr::rename(feature = "contig") %>%
+  # genes must be >=100bp
+  filter(endpos >= 100) %>%
+  select(Sample, feature, coverage) %>%
+write.table("../data/clean/geneCover.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+```
+
+
