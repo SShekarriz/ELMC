@@ -16,6 +16,10 @@ source('./functions.R')
 ```
 
 ## Mapfile
+###########################################################
+One of parentA sample has a very low depth of sequencing
+this must be removed from analyses
+filter(Sample != "A1E10M")
 
 ```{r}
 
@@ -78,15 +82,50 @@ cover_parser(path = "../Results/p_map_subset/contigs_1k",
     .groups = "drop"
   ) %>%
   mutate(Sample = gsub("sub_", "", Sample)) %>%
-  mutate(bin_coverage = round(bin_coverage, digits = 2)) %>%
-  select(Sample, BinLab, bin_coverage) %>%
+  mutate(coverage = round(bin_coverage, digits = 2)) %>%
+  rename(feature="BinLab") %>%
+  select(Sample, feature, coverage) %>%
 write.table("../data/clean/binCover.txt", sep = "\t", 
             row.names = F, quote = F)
-
-
-
 ```
 
 
+## Gene data
+
+gff file
+```{r}
+
+gff_cols <- c("seqname","source","feature","start","end","score","strand",
+              "frame","attributes")
+read.delim("../Results/p_map_subset/Donor_db.gff",
+           header=F, comment.char="#", ) -> gff
+colnames(gff) <- gff_cols
+
+# removing sequence info from the end of the gff file
+gff %>%
+  mutate(ID= gsub(";.*", "", attributes)) %>%
+  mutate(gene_id=gsub("ID=", "", ID)) %>%
+  # annotated regions that have only contig info in attributes. 
+  # I don't need them
+  filter(feature!= "region") %>%
+  filter(feature == "CDS")-> gff
+write.table(gff, "../data/clean/gene_db.gff.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+```
+
+Gene 1x coverage across all samples. reads rarefied to the lowest depth.
+```{r}
+
+cover_parser(path = "../Results/p_map_subset/genes",
+             patt= "_perfect.cover") %>%
+  dplyr::rename(feature = "contig") %>%
+  # genes must be >=100bp
+  filter(endpos >= 100) %>%
+  select(Sample, feature, coverage) %>%
+write.table("../data/clean/geneCover.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+```
 
 

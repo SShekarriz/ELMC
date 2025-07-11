@@ -1,4 +1,4 @@
-Sample	BinLab	bin_coverage
+Sample	feature	coverage
 A1E02M01	DonA_UnBin	26.38
 A1E02M01	DonA_bin_1	51.77
 A1E02M01	DonA_bin_10	2.95
