@@ -109,7 +109,7 @@ gff %>%
   # I don't need them
   filter(feature!= "region") %>%
   filter(feature == "CDS")-> gff
-write.table(gff, "../data/clean/gene_db.gff.txt", sep = "\t", 
+write.table(gff, "../data/clean/gene_db.txt", sep = "\t", 
             row.names = F, quote = F)
 
 ```
