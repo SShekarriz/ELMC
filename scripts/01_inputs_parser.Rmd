@@ -10,6 +10,8 @@ for functions and analyses
 ```{r}
 
 library(tidyverse)
+#load functions
+source('./functions.R')
 
 ```
 
@@ -32,6 +34,7 @@ write.table("../data/clean/mapfile.txt", sep = "\t",
 ```
 
 ## MAG data
+
 bins quality and taxonomy
 ```{r}
 
@@ -44,6 +47,43 @@ bin.qualy %>%
             select(BinLab, Phylum:Species)) %>%
 write.table("../data/clean/binQT.txt", sep = "\t", 
             row.names = F, quote = F)
+
+```
+
+bins 1x coverage data across all samples. this is rarefied reads to lowest number
+```{r}
+
+contigs <- read.csv("../Results/Assembly/contig_in_bins_anvi.txt", sep = "\t",
+                    header = F)
+colnames(contigs) <- c("contig", "BinLab")
+
+cover_parser(path = "../Results/p_map_subset/contigs_1k",
+             patt= "_perfect.cover") %>%
+  # adding bin info to contigs
+  mutate(Don= gsub("_pool__.*", "", contig)) %>%
+  left_join(contigs) %>%
+  # define contigs outside of bins
+  mutate(BinLab= case_when(is.na(BinLab) ~ paste(Don,"UnBin", sep = "_"),
+                           TRUE ~ paste(BinLab))) %>%
+  # Convert columns with numeric characters to numeric type
+  mutate(across(everything(), ~ if (all(
+    grepl("^\\s*-?\\d+(\\.\\d+)?\\s*$", .,
+          perl = TRUE))) as.numeric(.) else .)) %>%
+  group_by(Sample, BinLab) %>%
+  summarise(
+    bin_len = sum(endpos),
+    bin_covbases = sum(covbases),
+    bin_numreads = sum(numreads),
+    bin_coverage = bin_covbases / bin_len * 100,
+    .groups = "drop"
+  ) %>%
+  mutate(Sample = gsub("sub_", "", Sample)) %>%
+  mutate(bin_coverage = round(bin_coverage, digits = 2)) %>%
+  select(Sample, BinLab, bin_coverage) %>%
+write.table("../data/clean/binCover.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+
 
 ```
 
