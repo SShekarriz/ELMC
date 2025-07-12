@@ -128,4 +128,21 @@ write.table("../data/clean/geneCover.txt", sep = "\t",
 
 ```
 
+## Species data
+
+Relative abundance of species across sample using metaphlan4
+database used:#mpa_vJan21_CHOCOPhlAnSGB_202103
+```{r}
+
+read.csv("../Results/Reads/merged_metaphlan4.txt", 
+         skip = 1, sep = "\t") %>%
+  filter(str_detect(clade_name, "\\|s__[^|]+$")) %>%
+  gather(Sample, coverage, -clade_name) %>%
+  mutate(Sample = gsub(".mp.profile", "", Sample)) %>%
+  rename(feature = "clade_name") %>%
+  select(Sample, feature, coverage) %>%
+write.table("../data/clean/speciesAbund.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+```
 
