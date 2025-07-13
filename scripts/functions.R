@@ -22,9 +22,6 @@ cover_parser <- function(path = "../coverage", patt = ".cover"){
 }
 
 
-library(dplyr)
-library(stringr)
-
 # function to select donor-specific features
 DonFeature <- function(feature_c = "../data/clean/binCover.txt", 
                        donor = "DonA",
@@ -71,7 +68,23 @@ DonFeature <- function(feature_c = "../data/clean/binCover.txt",
 }
 
 
-
+# a function to count the number of colonization in each sample
+count_coloniz <- function(donor_feature,
+                          cutoff_pres = 0,
+                          mapfile = "../data/clean/mapfile.txt"){
+  
+  # Read mapfile
+  map <- read.delim(mapfile, header = TRUE, 
+                        stringsAsFactors = FALSE)
+  
+  coloniz_count = donor_feature %>%
+    filter(coverage >= cutoff_pres) %>%
+    group_by(Sample) %>%
+    summarise(n_coloniz= n()) %>%
+    left_join(map %>% select(Sample, Group, Category))
+  
+  return(coloniz_count)
+}
 
 
 
