@@ -22,6 +22,10 @@ cover_parser <- function(path = "../coverage", patt = ".cover"){
 }
 
 
+library(dplyr)
+library(stringr)
+
+# function to select donor-specific features
 DonFeature <- function(feature_c = "../data/clean/binCover.txt", 
                        donor = "DonA",
                        cutoff_pres = 0,
@@ -43,11 +47,7 @@ DonFeature <- function(feature_c = "../data/clean/binCover.txt",
   donor_sample <- switch(donor,
                          "DonA" = "X608",
                          "DonB" = "Wild116",
-                         NULL)
-  
-  if (is.null(donor_sample)) {
-    stop("Invalid donor specified. Choose 'DonA' or 'DonB'.")
-  }
+                         stop("Invalid donor specified. Choose 'DonA' or 'DonB'."))
   
   # Filter based on method
   if (method == "Assembly") {
@@ -61,9 +61,14 @@ DonFeature <- function(feature_c = "../data/clean/binCover.txt",
     stop("Invalid method specified. Choose 'Assembly' or 'Reads'.")
   }
   
-  return(df_filtered)
+  # get the list of features that passed the filter
+  f_feature <- df_filtered %>% pull(feature) %>% unique()
+  
+  # pull those features across all samples
+  donor_feature <- df %>% filter(feature %in% f_feature)
+  
+  return(donor_feature)
 }
-
 
 
 

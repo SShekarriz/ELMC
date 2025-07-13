@@ -1,0 +1,31 @@
+---
+title: "paper figures"
+output: html_document
+date: "2025-07-13"
+---
+
+```{r}
+
+library(tidyverse)
+#load functions
+source('./functions.R')
+
+```
+
+## Bins
+
+```{r}
+
+DonFeature(feature_c = "../data/clean/binCover.txt",
+           donor = "DonA",
+           cutoff_pres = 75,
+           method = "Assembly") -> DonA_bins
+
+DonFeature(feature_c = "../data/clean/binCover.txt",
+           donor = "DonB",
+           cutoff_pres = 75,
+           method = "Assembly") -> DonB_bins
+
+
+```
+
