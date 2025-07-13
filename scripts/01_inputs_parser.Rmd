@@ -112,16 +112,25 @@ gff %>%
 write.table(gff, "../data/clean/gene_db.txt", sep = "\t", 
             row.names = F, quote = F)
 
+
 ```
 
 Gene 1x coverage across all samples. reads rarefied to the lowest depth.
 ```{r}
 
+gff %>%
+  mutate(donor=gsub("_pool__.*", "", seqname)) %>%
+  mutate(feature= paste(donor, gene_id, sep = "__")) %>%
+  select(gene_id, feature) -> gene.ids
+
 cover_parser(path = "../Results/p_map_subset/genes",
              patt= "_perfect.cover") %>%
-  dplyr::rename(feature = "contig") %>%
+  dplyr::rename(gene_id = "contig") %>%
   # genes must be >=100bp
   filter(endpos >= 100) %>%
+  # genes that were identified as CDS in gff file
+  left_join(gene.ids) %>%
+  filter(!is.na(feature)) %>%
   select(Sample, feature, coverage) %>%
 write.table("../data/clean/geneCover.txt", sep = "\t", 
             row.names = F, quote = F)
