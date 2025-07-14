@@ -69,7 +69,7 @@ DonFeature <- function(feature_c = "../data/clean/binCover.txt",
 
 
 # a function to count the number of colonization in each sample
-count_coloniz <- function(donor_feature,
+countColoniz <- function(donor_feature,
                           cutoff_pres = 0,
                           mapfile = "../data/clean/mapfile.txt"){
   
@@ -86,7 +86,22 @@ count_coloniz <- function(donor_feature,
   return(coloniz_count)
 }
 
-
+# get total coloniation count- wraper for two above functions
+wrapColoniz <- function(feature_c = "../data/clean/binCover.txt", 
+                        donor = "DonA",
+                        cutoff_pres = 0,
+                        method = "Assembly",
+                        mapfile = "../data/clean/mapfile.txt") {
+  
+  donor_feature <- DonFeature(feature_c = feature_c, donor = donor,
+             cutoff_pres = cutoff_pres, method = method)
+  
+  final_count <- countColoniz(donor_feature = donor_feature, 
+               cutoff_pres = cutoff_pres,
+               mapfile = mapfile)
+  
+  return(final_count)
+}
 
 
 

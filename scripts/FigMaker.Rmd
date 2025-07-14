@@ -16,32 +16,65 @@ source('./functions.R')
 
 ```{r}
 
-DonFeature(feature_c = "../data/clean/binCover.txt",
+wrapColoniz(feature_c = "../data/clean/binCover.txt",
            donor = "DonA",
            cutoff_pres = 75,
-           method = "Assembly") -> DonA_bins
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt") %>%
+  mutate(Donor = paste("DonorA"))-> DonA_bins
 
-DonFeature(feature_c = "../data/clean/binCover.txt",
+wrapColoniz(feature_c = "../data/clean/binCover.txt",
            donor = "DonB",
            cutoff_pres = 75,
-           method = "Assembly") -> DonB_bins
-
-count_coloniz(DonA_bins, cutoff_pres = 75,
-              mapfile = "../data/clean/mapfile.txt") %>%
-  mutate(Donor= paste("DonorA")) -> DonA_bins_count
-
-count_coloniz(DonB_bins, cutoff_pres = 75,
-              mapfile = "../data/clean/mapfile.txt") %>%
-  mutate(Donor= paste("DonorB"))-> DonB_bins_count
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt") %>%
+  mutate(Donor = paste("DonorB"))-> DonB_bins
 
 
-DonA_bins_count %>%
-  rbind(DonB_bins_count) %>%
+DonA_bins%>%
+  rbind(DonB_bins) %>%
 ggplot(
        aes(Group, n_coloniz)) +
   geom_boxplot() + geom_point() +
   facet_grid(Donor~Category, space = "free", scales = "free_x") +
   theme_bw()
+
+```
+
+
+## Genes
+
+```{r}
+
+wrapColoniz(feature_c = "../data/clean/geneCover.txt",
+           donor = "DonA",
+           cutoff_pres = 90,
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt") %>%
+  mutate(Donor = paste("DonorA"))-> DonA_genes
+
+wrapColoniz(feature_c = "../data/clean/geneCover.txt",
+           donor = "DonB",
+           cutoff_pres = 90,
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt") %>%
+  mutate(Donor = paste("DonorB"))-> DonB_genes
+
+
+DonA_genes%>%
+  rbind(DonB_genes) %>%
+ggplot(
+       aes(Group, n_coloniz)) +
+  geom_boxplot() + geom_point() +
+  facet_grid(Donor~Category, space = "free", scales = "free_x") +
+  theme_bw()
+
+```
+
+## Species
+
+```{r}
+
 
 
 ```
