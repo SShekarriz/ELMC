@@ -44,6 +44,37 @@ ggplot(
 
 ```
 
+## MAGs
+
+```{r}
+
+wrapColoniz(feature_c = "../data/clean/MAGCover.txt",
+           donor = "DonA",
+           cutoff_pres = 75,
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt") %>%
+  mutate(Donor = paste("DonorA"))-> DonA_MAGs
+
+wrapColoniz(feature_c = "../data/clean/MAGCover.txt",
+           donor = "DonB",
+           cutoff_pres = 75,
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt") %>%
+  mutate(Donor = paste("DonorB"))-> DonB_MAGs
+
+
+DonA_MAGs%>%
+  rbind(DonB_MAGs) %>%
+ggplot(
+       aes(Group, n_coloniz)) +
+  geom_boxplot() + geom_point() +
+  facet_grid(Donor~Category, space = "free", scales = "free_x") +
+  ggpubr::geom_signif(comparisons = list(c("AB", "BA")),
+              map_signif_level = FALSE, y_position = 25) +
+  theme_bw()
+
+```
+
 
 ## Genes
 
