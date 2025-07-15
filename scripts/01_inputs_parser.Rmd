@@ -89,6 +89,28 @@ write.table("../data/clean/binCover.txt", sep = "\t",
             row.names = F, quote = F)
 ```
 
+MAGs 1x coverage data across all samples.
+
+```{r}
+
+binQT <- read.delim("../data/clean/binQT.txt", 
+           header = T, stringsAsFactors = F)
+
+binCover <- read.delim("../data/clean/binCover.txt",
+                       header = T, stringsAsFactors = F)
+
+MAGid <- binQT %>%
+  filter(Completeness >= 50 & Contamination <= 10) %>%
+  pull(BinLab) %>% unique()
+
+binCover %>%
+  filter(feature %in% MAGid) %>%
+write.table("../data/clean/MAGCover.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+
+```
+
 
 ## Gene data
 
