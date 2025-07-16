@@ -188,7 +188,7 @@ spAbund <- read.delim("../data/clean/speciesAbund.txt",
 map <- read.delim("../data/clean/mapfile.txt", header = T, stringsAsFactors = F)
 
 # fist, it must be present in donor samples
-cut_off=0.01
+cut_off=0.001
 spAbund %>%
   left_join(map) %>%
   filter(Group %in% c("DonorA", "DonorB")) %>%
