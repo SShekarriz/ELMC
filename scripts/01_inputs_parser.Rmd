@@ -163,6 +163,7 @@ write.table("../data/clean/geneCover.txt", sep = "\t",
 
 Relative abundance of species across sample using metaphlan4
 database used:#mpa_vJan21_CHOCOPhlAnSGB_202103
+
 ```{r}
 
 read.csv("../Results/Reads/merged_metaphlan4.txt", 
@@ -175,5 +176,40 @@ read.csv("../Results/Reads/merged_metaphlan4.txt",
 write.table("../data/clean/speciesAbund.txt", sep = "\t", 
             row.names = F, quote = F)
 
+```
+
+## StrainPhlan data
+a list of species (SGB) with min abundance in donor and parent samples for
+StrainPhlan analyses
+```{r}
+
+spAbund <- read.delim("../data/clean/speciesAbund.txt",
+                      header = T, stringsAsFactors = F)
+map <- read.delim("../data/clean/mapfile.txt", header = T, stringsAsFactors = F)
+
+# fist, it must be present in donor samples
+cut_off=0.01
+spAbund %>%
+  left_join(map) %>%
+  filter(Group %in% c("DonorA", "DonorB")) %>%
+  filter(coverage >= cut_off) %>%
+  select(Sample, feature) %>%
+  distinct() %>% pull(feature) -> DonSp
+
+spAbund %>%
+  filter(feature %in% DonSp) %>%
+  left_join(map) %>%
+  filter(Group %in% c("ParentA", "ParentB")) %>%
+  select(Sample, feature, coverage) %>%
+  spread(Sample, coverage) %>%
+# Filter features with coverage > cut_off in at least 5 Parent samples
+  rowwise() %>%
+  mutate(above_cutoff = sum(c_across(-feature) > cut_off, na.rm = TRUE)) %>%
+  ungroup() %>%
+  filter(above_cutoff >= 5) %>%
+  select(-above_cutoff) %>%
+  pull(feature) %>%
+write.table("../data/clean/DonAndParentSp_list.txt",
+            quote = F, col.names = F, row.names = F)
 ```
 
