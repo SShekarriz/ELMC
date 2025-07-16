@@ -156,13 +156,40 @@ CompFig <- function(feature_c = "../data/clean/binCover.txt",
                                   mapfile = mapfile) %>%
                     mutate(Donor = paste("DonorB"))
   
-  compfig <- finalA_identity%>%
-    rbind(finalB_identity) %>%
-    ggplot(
-      aes(feature, Sample, fill= coverage)) +
+  table <- finalA_identity %>%
+    rbind(finalB_identity) 
+  
+  # compute feature importance
+  feature_order <- table %>%
+    group_by(Donor, Group, feature) %>%
+    summarise(
+      total_coverage = sum(coverage, na.rm = TRUE),
+      detection_count = sum(coverage > 0, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    arrange(Donor, Group, desc(detection_count), desc(total_coverage)) %>%
+    group_by(Donor, Group) %>%
+    mutate(feature_rank = row_number())
+  
+  # join ranks back to original data
+  table_ranked <- table %>%
+    left_join(feature_order, by = c("Donor", "Group", "feature")) %>%
+    mutate(feature = fct_reorder2(feature, Donor, -feature_rank))
+  
+  # Plot
+  compfig <- ggplot(table_ranked, aes(feature, Sample, fill = coverage)) +
     geom_tile() +
-    facet_grid(Group~Donor, space = "free", scales = "free")
+    facet_grid(Group ~ Donor, space = "free", scales = "free") +
+    theme(axis.text.x = element_blank())
   
   return(compfig)
 }
+
+
+
+
+
+
+
+
 
