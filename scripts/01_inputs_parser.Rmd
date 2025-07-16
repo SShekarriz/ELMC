@@ -168,7 +168,7 @@ database used:#mpa_vJan21_CHOCOPhlAnSGB_202103
 
 read.csv("../Results/Reads/merged_metaphlan4.txt", 
          skip = 1, sep = "\t") %>%
-  filter(str_detect(clade_name, "\\|s__[^|]+$")) %>%
+  filter(str_detect(clade_name, "\\|t__")) %>%
   gather(Sample, coverage, -clade_name) %>%
   mutate(Sample = gsub(".mp.profile", "", Sample)) %>%
   rename(feature = "clade_name") %>%
@@ -208,8 +208,9 @@ spAbund %>%
   ungroup() %>%
   filter(above_cutoff >= 5) %>%
   select(-above_cutoff) %>%
-  pull(feature) %>%
-write.table("../data/clean/DonAndParentSp_list.txt",
-            quote = F, col.names = F, row.names = F)
+  separate(feature, c("name", "SGB"), sep = "\\|t__") %>%
+  select(SGB, name) %>%
+write.table("../data/clean/DonAndParentSp_list.txt", sep = "\t",
+            quote = F, row.names = F)
 ```
 
