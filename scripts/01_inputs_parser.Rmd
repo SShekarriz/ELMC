@@ -108,8 +108,30 @@ binCover %>%
 write.table("../data/clean/MAGCover.txt", sep = "\t", 
             row.names = F, quote = F)
 
+MAGid %>%
+write.table("../data/clean/MAGids.txt", sep = "\t", 
+            row.names = F, quote = F, col.names = F)
 
 ```
+
+```{r}
+
+MAGids <- read.delim("../data/clean/MAGids.txt", col.names = "MAGs")
+MAGids %>%
+  filter(str_detect(MAGs, "DonA")) %>%
+  mutate(MAGs = gsub("DonA_bin_", "bin.", MAGs)) %>%
+  mutate(MAGs = gsub("$", ".fa", MAGs)) %>%
+  write.table("../data/clean/MAGids_DonA.txt", 
+            row.names = F, quote = F, col.names = F)
+MAGids %>%
+  filter(str_detect(MAGs, "DonB")) %>%
+  mutate(MAGs = gsub("DonB_bin_", "bin.", MAGs)) %>%
+  mutate(MAGs = gsub("$", ".fa", MAGs)) %>%
+  write.table("../data/clean/MAGids_DonB.txt", 
+            row.names = F, quote = F, col.names = F)
+
+```
+
 
 
 ## Gene data
@@ -208,9 +230,16 @@ spAbund %>%
   ungroup() %>%
   filter(above_cutoff >= 5) %>%
   select(-above_cutoff) %>%
-  separate(feature, c("name", "SGB"), sep = "\\|t__") %>%
-  select(SGB, name) %>%
-write.table("../data/clean/DonAndParentSp_list.txt", sep = "\t",
+  mutate(SGB = gsub(".*\\|t__", "t__", feature)) %>%
+  select(SGB, feature) -> SGBs
+
+write.table(SGBs, "../data/clean/DonAndParentSp_list.txt", sep = "\t",
             quote = F, row.names = F)
+SGBs %>%
+  pull(SGB) %>%
+write.table("../data/clean/DonAndParentSp_SGBs.txt", sep = "\t",
+            quote = F, row.names = F, col.names = F)
+
+
 ```
 
