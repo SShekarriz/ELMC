@@ -8,6 +8,7 @@ date: "2025-07-13"
 
 library(tidyverse)
 library(ggpubr)
+library(cowplot)
 #load functions
 source('./functions.R')
 
@@ -20,7 +21,7 @@ source('./functions.R')
 CountFig(feature_c = "../data/clean/binCover.txt",
            cutoff_pres = 75,
            method = "Assembly",
-           mapfile = "../data/clean/mapfile.txt") 
+           mapfile = "../data/clean/mapfile.txt")
 
 ```
 

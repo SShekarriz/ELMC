@@ -107,13 +107,6 @@ CountFig <- function(feature_c = "../data/clean/binCover.txt",
                                mapfile = mapfile) %>%
                   mutate(Donor = paste("DonorB"))
   
-  countfig <- finalA_count%>%
-    rbind(finalB_count) %>%
-    ggplot(
-      aes(Group, n_coloniz)) +
-    geom_boxplot() + geom_point() +
-    facet_grid(Donor~Category, space = "free", scales = "free_x")
-  
   
   # Combine and summarize data
   summary_df <- bind_rows(finalA_count, finalB_count) %>%
@@ -132,18 +125,42 @@ CountFig <- function(feature_c = "../data/clean/binCover.txt",
   # Plot
   countfig <- ggplot(summary_df, aes(x = Group, 
                                      y = mean_coloniz, 
-                                     color = Donor, 
                                      group = Donor)) +
-    geom_line() +
-    geom_point(size = 3) +
-    geom_errorbar(aes(ymin = mean_coloniz - sd_coloniz, 
-                      ymax = mean_coloniz + sd_coloniz), width = 0.2) +
-    #facet_grid(Donor ~ Category, scales = "free_x", space = "free") +
+    geom_line(size =1, aes(color = Donor)) +
+    geom_point(size = 1, aes(color = Donor)) +
+    geom_ribbon(aes(ymin = mean_coloniz - sd_coloniz, 
+                      ymax = mean_coloniz + sd_coloniz,
+                    fill = Donor), alpha = 0.2) +
     theme_bw() +
-    labs(y = "Mean Colonization", x = "Group")
+    theme(legend.position = "none",
+          axis.title = element_blank(),
+          axis.text.x = element_text(angle = 90))
   
+  statsdata <- bind_rows(finalA_count, 
+                        finalB_count) %>%
+    filter(Group %in% c("AB", "BA", "ABAB"))
   
-  return(countfig)
+  statsdata$Group <- factor(statsdata$Group, 
+                             levels = c("AB", "BA", "ABAB"))
+  statsfig <- ggplot(statsdata,
+                     aes(Group, n_coloniz, color = Donor)) +
+    geom_boxplot() + geom_point() +
+    stat_compare_means(method = "t.test", 
+                       aes(label = ..p.value.., y = values), 
+                       comparisons = list(c("AB" , "BA"), 
+                                          c("AB" , "ABAB"),
+                                          c("BA","ABAB"))) +
+    facet_grid(Donor~., space = "free", scales = "free") +
+    theme_bw() +
+    theme(legend.position = "none",
+          strip.text.y = element_blank(),
+          axis.title = element_blank(),
+          axis.text.x = element_text(angle = 90))
+  
+  fig <- cowplot::plot_grid(countfig, statsfig, nrow = 1)
+    
+  
+  return(fig)
 }
 
 # a function to compare the colonized feature in pups
