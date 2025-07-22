@@ -114,6 +114,35 @@ CountFig <- function(feature_c = "../data/clean/binCover.txt",
     geom_boxplot() + geom_point() +
     facet_grid(Donor~Category, space = "free", scales = "free_x")
   
+  
+  # Combine and summarize data
+  summary_df <- bind_rows(finalA_count, finalB_count) %>%
+    group_by(Donor, Category, Group) %>%
+    summarise(
+      mean_coloniz = mean(n_coloniz, na.rm = TRUE),
+      sd_coloniz = sd(n_coloniz, na.rm = TRUE),
+      .groups = "drop"
+    )
+  
+  summary_df$Group <- factor(summary_df$Group, 
+                             levels = c("DonorA", "DonorB",
+                               "ParentA", "ParentB", "ParentAB",
+                               "AB", "BA", "ABAB"))
+  
+  # Plot
+  countfig <- ggplot(summary_df, aes(x = Group, 
+                                     y = mean_coloniz, 
+                                     color = Donor, 
+                                     group = Donor)) +
+    geom_line() +
+    geom_point(size = 3) +
+    geom_errorbar(aes(ymin = mean_coloniz - sd_coloniz, 
+                      ymax = mean_coloniz + sd_coloniz), width = 0.2) +
+    #facet_grid(Donor ~ Category, scales = "free_x", space = "free") +
+    theme_bw() +
+    labs(y = "Mean Colonization", x = "Group")
+  
+  
   return(countfig)
 }
 
