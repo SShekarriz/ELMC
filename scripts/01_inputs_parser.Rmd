@@ -32,6 +32,8 @@ data %>%
   rename(Reads=V2) %>%
   left_join(mapfile) %>%
   select(Sample, Reads, Group, Isolator, Cage, Category) %>%
+  # sample with low depth:
+  filter(Sample != "A1E10M") %>%
 write.table("../data/clean/mapfile.txt", sep = "\t", 
             row.names = F, quote = F)
 
@@ -85,6 +87,8 @@ cover_parser(path = "../Results/p_map_subset/contigs_1k",
   mutate(coverage = round(bin_coverage, digits = 2)) %>%
   rename(feature="BinLab") %>%
   select(Sample, feature, coverage) %>%
+  # sample with low depth:
+  filter(Sample != "A1E10M") %>%
 write.table("../data/clean/binCover.txt", sep = "\t", 
             row.names = F, quote = F)
 ```
@@ -176,6 +180,8 @@ cover_parser(path = "../Results/p_map_subset/genes",
   left_join(gene.ids) %>%
   filter(!is.na(feature)) %>%
   select(Sample, feature, coverage) %>%
+   # sample with low depth:
+  filter(Sample != "A1E10M") %>%
 write.table("../data/clean/geneCover.txt", sep = "\t", 
             row.names = F, quote = F)
 
@@ -195,6 +201,8 @@ read.csv("../Results/Reads/merged_metaphlan4.txt",
   mutate(Sample = gsub(".mp.profile", "", Sample)) %>%
   rename(feature = "clade_name") %>%
   select(Sample, feature, coverage) %>%
+  # sample with low depth:
+  filter(Sample != "A1E10M") %>%
 write.table("../data/clean/speciesAbund.txt", sep = "\t", 
             row.names = F, quote = F)
 
