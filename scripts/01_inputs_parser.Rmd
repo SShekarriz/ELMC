@@ -251,3 +251,57 @@ write.table("../data/clean/DonAndParentSp_SGBs.txt", sep = "\t",
 
 ```
 
+importing strainphlan distances for the SGB of interest.note that some of these
+were failed because they were not present in enough samples, with enough 
+coverage. we used the authors suggested cut-off for these values and lower than
+the default settings. 
+
+```{r}
+
+map <- "../data/clean/mapfile.txt"
+precom_thresh = "../Results/Reads/strainphlan_threshold/VallesColomerM_2022_Jan21_thresholds.tsv"
+path = "../Results/Reads/strainphlan"
+patt = "_nGD.tsv"
+
+data.frame(marker.id = paste(dir(path, pattern = patt))) %>%
+  mutate(file_contents = map(marker.id, ~ read_tsv(
+      file.path(path, .),
+      col_names = F))) %>%
+  unnest() %>%
+  mutate(marker.id = gsub(patt, "", marker.id)) -> pwdis
+
+length(unique(pwdis$marker.id))
+
+pwdis %>%
+  # only samples compared to Wild116, and X608:
+  filter(X2 %in% c("X608", "Wild116")) %>%
+  mutate(pairwise= paste(X1, X2, sep = "-")) %>%
+  mutate(
+         pairwise= paste(marker.id, pairwise, sep = "-"),
+         distance= X3,
+         Sample= paste(X1),
+         SGB= marker.id,
+         Donor= paste(X2)) %>%
+  select(pairwise, SGB, Sample, distance, Donor) -> don_pwdis
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
