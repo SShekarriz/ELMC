@@ -10,6 +10,7 @@ for functions and analyses
 ```{r}
 
 library(tidyverse)
+library(ape) # for reading/writing tree files
 #load functions
 source('./functions.R')
 
@@ -118,6 +119,7 @@ write.table("../data/clean/MAGids.txt", sep = "\t",
 
 ```
 
+
 ```{r}
 
 MAGids <- read.delim("../data/clean/MAGids.txt", col.names = "MAGs")
@@ -136,7 +138,22 @@ MAGids %>%
 
 ```
 
+MAG tree files, seperated for DonA and DonB
+GTDB-tk was ran for MAGs and the alignment files were used to make a tree
+using fasttree
 
+```{r}
+
+# Read a tree fix the label and keep it in clean data
+DonA.tree <- read.tree("../Results/Assembly/DonA.bac120.user_msa.tree")
+DonA.tree$tip.label <- gsub("bin.", "DonA_bin_", DonA.tree$tip.label)
+write.tree(DonA.tree, "../data/clean/MAGs_DonA.tree")
+
+DonB.tree <- read.tree("../Results/Assembly/DonB.bac120.user_msa.tree")
+DonB.tree$tip.label <- gsub("bin.", "DonB_bin_", DonB.tree$tip.label)
+write.tree(DonB.tree, "../data/clean/MAGs_DonB.tree")
+
+```
 
 ## Gene data
 

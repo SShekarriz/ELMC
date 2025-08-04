@@ -9,6 +9,9 @@ date: "2025-07-13"
 library(tidyverse)
 library(ggpubr)
 library(cowplot)
+library(ape)
+library(ggtree)
+library(aplot) # For aligning plots
 #load functions
 source('./functions.R')
 
@@ -53,8 +56,39 @@ CompFig(feature_c = "../data/clean/MAGCover.txt",
            method = "Assembly",
            mapfile = "../data/clean/mapfile.txt")
 
+```
+
+
+```{r}
+
+CompPhyloFig(feature_c = "../data/clean/MAGCover.txt",
+           cutoff_pres = 75,
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt")
 
 ```
+
+
+
+```{r}
+
+# read the tree and order features based on tree.tips
+tree <- read.tree("../data/clean/MAGs_DonA.tree")
+p_tree <- ggtree(tree, branch.length = "none") + geom_tiplab(align = TRUE)
+
+data_tile <- data.frame(feature = tree$tip.label)
+
+# Order data based on tree tip labels
+    data_tile$feature <- factor(data_tile$feature, 
+                             levels = tree$tip.label[order(match(tree$tip.label, tree$tip.label))])
+
+    p_tile <- ggplot(data_tile, aes(x = category, y = taxa, fill = value)) +
+      geom_tile() +
+      scale_fill_viridis_c()
+
+```
+
+
 
 
 ## Genes

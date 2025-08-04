@@ -232,6 +232,43 @@ CompFig <- function(feature_c = "../data/clean/binCover.txt",
 }
 
 
+# compare colonized feature in pups- by adding phylogeny of features
+CompPhyloFig <- function(feature_c = "../data/clean/binCover.txt", 
+                    cutoff_pres = 0,
+                    method = "Assembly",
+                    mapfile = "../data/clean/mapfile.txt",
+                    DonA_tree= "../data/clean/MAGs_DonA.tree") {
+  
+  # DonorA
+  donorA_feature <- DonFeature(feature_c = feature_c, donor = "DonA",
+                               cutoff_pres = cutoff_pres, method = method)
+  finalA_identity <- identColoniz(donor_feature = donorA_feature, 
+                                  cutoff_pres = cutoff_pres,
+                                  mapfile = mapfile) %>%
+    mutate(Donor = paste("DonorA"))
+
+  table <- finalA_identity
+  
+  # read tree file 
+  Atree <- read.tree(DonA_tree)
+  Ap_tree <- ggtree(Atree) + geom_tiplab(align = TRUE)
+  
+  #order the feature by tip.label
+  data_tile <- data.frame(feature = Atree$tip.label)
+  table$feature <- factor(data_tile$feature, 
+                   levels = Atree$tip.label[order(match(Atree$tip.label,
+                   Atree$tip.label))])
+  
+  # Plot
+  compfig <- ggplot(table, aes(feature, Sample, fill = coverage)) +
+    geom_tile() +
+    facet_grid(Group ~ Donor, space = "free", scales = "free") +
+    scale_fill_viridis_c() +
+    theme(axis.text.x = element_blank())
+  
+  return(compfig)
+}
+
 
 
 
