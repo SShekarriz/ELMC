@@ -136,31 +136,7 @@ CountFig <- function(feature_c = "../data/clean/binCover.txt",
           axis.title = element_blank(),
           axis.text.x = element_text(angle = 90))
   
-  statsdata <- bind_rows(finalA_count, 
-                        finalB_count) %>%
-    filter(Group %in% c("AB", "BA", "ABAB"))
-  
-  statsdata$Group <- factor(statsdata$Group, 
-                             levels = c("AB", "BA", "ABAB"))
-  statsfig <- ggplot(statsdata,
-                     aes(Group, n_coloniz, color = Donor)) +
-    geom_boxplot() + geom_point() +
-    stat_compare_means(method = "t.test", 
-                       aes(label = ..p.value.., y = values), 
-                       comparisons = list(c("AB" , "BA"), 
-                                          c("AB" , "ABAB"),
-                                          c("BA","ABAB"))) +
-    facet_grid(Donor~., space = "free", scales = "free") +
-    theme_bw() +
-    theme(legend.position = "none",
-          strip.text.y = element_blank(),
-          axis.title = element_blank(),
-          axis.text.x = element_text(angle = 90))
-  
-  fig <- cowplot::plot_grid(countfig, statsfig, nrow = 1)
-    
-  
-  return(fig)
+  return(countfig)
 }
 
 # a function to compare the colonized feature in pups
