@@ -64,7 +64,8 @@ CompFig(feature_c = "../data/clean/MAGCover.txt",
 CompPhyloFig(feature_c = "../data/clean/MAGCover.txt",
            cutoff_pres = 75,
            method = "Assembly",
-           mapfile = "../data/clean/mapfile.txt")
+           mapfile = "../data/clean/mapfile.txt", 
+           DonA_tree = "../data/clean/MAGs_DonA.tree")
 
 ```
 

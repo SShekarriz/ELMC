@@ -161,7 +161,6 @@ CompFig <- function(feature_c = "../data/clean/binCover.txt",
                         cutoff_pres = 0,
                         method = "Assembly",
                         mapfile = "../data/clean/mapfile.txt") {
-  
   # DonorA
   donorA_feature <- DonFeature(feature_c = feature_c, donor = "DonA",
                                cutoff_pres = cutoff_pres, method = method)
@@ -169,7 +168,6 @@ CompFig <- function(feature_c = "../data/clean/binCover.txt",
                                cutoff_pres = cutoff_pres,
                                mapfile = mapfile) %>%
                     mutate(Donor = paste("DonorA"))
-  
   # DonorB
   donorB_feature <- DonFeature(feature_c = feature_c, donor = "DonB",
                                cutoff_pres = cutoff_pres, method = method)
