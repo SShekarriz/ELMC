@@ -123,18 +123,42 @@ CountFig <- function(feature_c = "../data/clean/binCover.txt",
                                "AB", "BA", "ABAB"))
   
   # Plot
+  #countfig <- ggplot(summary_df, aes(x = Group, 
+  #                                   y = mean_coloniz, 
+  #                                   group = Donor)) +
+  #  geom_line(size =1, aes(color = Donor)) +
+  #  geom_point(size = 1, aes(color = Donor)) +
+  #  geom_ribbon(aes(ymin = mean_coloniz - sd_coloniz, 
+  #                    ymax = mean_coloniz + sd_coloniz,
+  #                  fill = Donor), alpha = 0.2) +
+  #  theme_bw() +
+  #  theme(
+  #        axis.title = element_blank(),
+  #        axis.text.x = element_text(angle = 90))
+  
+  
   countfig <- ggplot(summary_df, aes(x = Group, 
                                      y = mean_coloniz, 
                                      group = Donor)) +
-    geom_line(size =1, aes(color = Donor)) +
+    # Add shaded rectangle between DonorA and DonorB
+    geom_rect(data = NULL, 
+              aes(xmin = which(levels(summary_df$Group) == "DonorA"), 
+                  xmax = which(levels(summary_df$Group) == "ParentAB"), 
+                  ymin = -Inf, ymax = Inf),
+              fill = "grey", alpha = 0.05) +
+    geom_line(size = 1, aes(color = Donor)) +
     geom_point(size = 1, aes(color = Donor)) +
     geom_ribbon(aes(ymin = mean_coloniz - sd_coloniz, 
-                      ymax = mean_coloniz + sd_coloniz,
+                    ymax = mean_coloniz + sd_coloniz,
                     fill = Donor), alpha = 0.2) +
     theme_bw() +
-    theme(legend.position = "none",
-          axis.title = element_blank(),
-          axis.text.x = element_text(angle = 90))
+    theme(
+      axis.title = element_blank(),
+      axis.text.x = element_text(angle = 90),
+      legend.position = c(1, 1),  # Top right corner
+      legend.justification = c(1, 1)  # Align legend box to top right
+    )
+  
   
   return(countfig)
 }
