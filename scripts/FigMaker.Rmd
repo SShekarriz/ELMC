@@ -75,7 +75,7 @@ CompFig(feature_c = "../data/clean/MAGCover.txt",
 
 ```{r}
 
-CompFigWithTree(feature_c = "../data/clean/binCover.txt",
+CompFigWithTree(feature_c = "../data/clean/MAGCover.txt",
                 cutoff_pres = 0,
                 method = "Assembly",
                 mapfile = "../data/clean/mapfile.txt",
