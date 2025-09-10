@@ -222,44 +222,92 @@ CompFig <- function(feature_c = "../data/clean/binCover.txt",
   return(compfig)
 }
 
+#####################################################################
 
-# compare colonized feature in pups- by adding phylogeny of features
-CompPhyloFig <- function(feature_c = "../data/clean/binCover.txt", 
-                    cutoff_pres = 0,
-                    method = "Assembly",
-                    mapfile = "../data/clean/mapfile.txt",
-                    DonA_tree= "../data/clean/MAGs_DonA.tree") {
+CompFigWithTree <- function(feature_c = "../data/clean/binCover.txt",
+                            cutoff_pres = 0,
+                            method = "Assembly",
+                            mapfile = "../data/clean/mapfile.txt",
+                            treeA_file = "../data/tree/DonorA_tree.nwk") {
   
-  # DonorA
+  # Load tree
+  treeA <- read.tree(treeA_file)
+  
+  # DonorA data
   donorA_feature <- DonFeature(feature_c = feature_c, donor = "DonA",
                                cutoff_pres = cutoff_pres, method = method)
+  
   finalA_identity <- identColoniz(donor_feature = donorA_feature, 
                                   cutoff_pres = cutoff_pres,
                                   mapfile = mapfile) %>%
-    mutate(Donor = paste("DonorA"))
-
-  table <- finalA_identity
+    mutate(Donor = "DonorA")
   
-  # read tree file 
-  Atree <- read.tree(DonA_tree)
-  Ap_tree <- ggtree(Atree) + geom_tiplab(align = TRUE)
+  # Filter to match tree tip labels
+  tableA <- finalA_identity %>%
+    filter(feature %in% treeA$tip.label)
   
-  #order the feature by tip.label
-  data_tile <- data.frame(feature = Atree$tip.label)
-  table$feature <- factor(data_tile$feature, 
-                   levels = Atree$tip.label[order(match(Atree$tip.label,
-                   Atree$tip.label))])
+  # Reshape for gheatmap
+  heatmap_data <- tableA %>%
+    select(feature, Sample, coverage) %>%
+    spread(Sample, coverage, fill = 0) %>%
+    column_to_rownames("feature")
   
-  # Plot
-  compfig <- ggplot(table, aes(feature, Sample, fill = coverage)) +
-    geom_tile() +
-    facet_grid(Group ~ Donor, space = "free", scales = "free") +
-    scale_fill_viridis_c() +
-    theme(axis.text.x = element_blank())
+  # Create annotation data for samples
+  sample_group <- tableA %>%
+    distinct(Sample, Group) %>%
+    arrange(Sample) %>%
+    column_to_rownames("Sample")
   
-  return(compfig)
+  # Plot tree + heatmap
+  pA <- gheatmap(ggtree(treeA), heatmap_data,
+                 offset = 0.1, width = 0.6,
+                 colnames_angle = 90, colnames_position = "bottom") +
+    geom_tiplab(size=2, align=TRUE, linesize=.5) + 
+    #theme_tree2() +
+    scale_fill_gradient(low = "#eff3ff", high = "#08519c")
+  
+  return(pA)
 }
 
+####################################################################
+
+CompFigWithTree_pheatmap <- function(feature_c = "../data/clean/binCover.txt",
+                                     cutoff_pres = 0,
+                                     method = "Assembly",
+                                     mapfile = "../data/clean/mapfile.txt") {
+  
+  # DonorA data
+  donorA_feature <- DonFeature(feature_c = feature_c, donor = "DonA",
+                               cutoff_pres = cutoff_pres, method = method)
+  
+  finalA_identity <- identColoniz(donor_feature = donorA_feature, 
+                                  cutoff_pres = cutoff_pres,
+                                  mapfile = mapfile) %>%
+    mutate(Donor = "DonorA")
+  
+  # Reshape to wide format
+  heatmap_data <- finalA_identity %>%
+    select(feature, Sample, coverage) %>%
+    pivot_wider(names_from = Sample, values_from = coverage, values_fill = 0) %>%
+    column_to_rownames("feature")
+  
+  # Create annotation data for samples
+  sample_group <- finalA_identity %>%
+    distinct(Sample, Group) %>%
+    column_to_rownames("Sample")
+  
+  # Plot heatmap with sample names and group annotation
+  pheatmap(mat = heatmap_data,
+           annotation_col = sample_group,
+           cluster_rows = TRUE,
+           cluster_cols = TRUE,
+           show_colnames = TRUE,       # keeps sample names
+           show_rownames = FALSE,
+           color = colorRampPalette(c("#eff3ff", "#08519c"))(100),
+           main = "DonorA Colonization Pattern")
+}
+
+########################################################################
 
 
 
