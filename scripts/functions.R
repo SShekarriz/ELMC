@@ -79,9 +79,6 @@ countColoniz <- function(donor_feature,
   
   coloniz_count = donor_feature %>%
     filter(coverage >= cutoff_pres) %>%
-    #group_by(Sample) %>%
-    #summarise(n_coloniz= n()) %>%
-    #left_join(map %>% select(Sample, Group, Category))
     group_by(Sample) %>%
     summarise(n_coloniz = n(), .groups = "drop") %>%
     right_join(map %>% select(Sample, Group, Category), by = "Sample") %>%
@@ -125,22 +122,7 @@ CountFig <- function(feature_c = "../data/clean/binCover.txt",
                              levels = c("DonorA", "DonorB",
                                "ParentA", "ParentB", "ParentAB",
                                "AB", "BA", "ABAB"))
-  
-  # Plot
-  #countfig <- ggplot(summary_df, aes(x = Group, 
-  #                                   y = mean_coloniz, 
-  #                                   group = Donor)) +
-  #  geom_line(size =1, aes(color = Donor)) +
-  #  geom_point(size = 1, aes(color = Donor)) +
-  #  geom_ribbon(aes(ymin = mean_coloniz - sd_coloniz, 
-  #                    ymax = mean_coloniz + sd_coloniz,
-  #                  fill = Donor), alpha = 0.2) +
-  #  theme_bw() +
-  #  theme(
-  #        axis.title = element_blank(),
-  #        axis.text.x = element_text(angle = 90))
-  
-  
+
   countfig <- ggplot(summary_df, aes(x = Group, 
                                      y = mean_coloniz, 
                                      group = Donor)) +
@@ -149,17 +131,22 @@ CountFig <- function(feature_c = "../data/clean/binCover.txt",
               aes(xmin = which(levels(summary_df$Group) == "DonorA"), 
                   xmax = which(levels(summary_df$Group) == "ParentAB"), 
                   ymin = -Inf, ymax = Inf),
-              fill = "grey", alpha = 0.05) +
+              fill = "#252525", alpha = 0.009) +
     geom_line(size = 1, aes(color = Donor)) +
     geom_point(size = 1, aes(color = Donor)) +
     geom_ribbon(aes(ymin = mean_coloniz - sd_coloniz, 
                     ymax = mean_coloniz + sd_coloniz,
                     fill = Donor), alpha = 0.2) +
+    scale_color_manual(values = c("DonorA" = "#7b3294",
+                                  "DonorB" = "#008837")) +
+    scale_fill_manual(values = c("DonorA" = "#7b3294",
+                                  "DonorB" = "#008837")) +
     theme_bw() +
     theme(
       axis.title = element_blank(),
       axis.text.x = element_text(angle = 90),
-      legend.position = c(1, 1),  # Top right corner
+      legend.title = element_blank(),
+      legend.position = c(0.98, 0.98),  # Top right corner
       legend.justification = c(1, 1)  # Align legend box to top right
     )
   
@@ -228,6 +215,8 @@ CompFig <- function(feature_c = "../data/clean/binCover.txt",
   compfig <- ggplot(table_ranked, aes(feature, Sample, fill = coverage)) +
     geom_tile() +
     facet_grid(Group ~ Donor, space = "free", scales = "free") +
+    scale_fill_gradient(low = "#eff3ff", high = "#08519c") +
+    theme_classic() +
     theme(axis.text.x = element_blank())
   
   return(compfig)

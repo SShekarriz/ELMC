@@ -27,6 +27,14 @@ CountFig(feature_c = "../data/clean/binCover.txt",
            method = "Assembly",
            mapfile = "../data/clean/mapfile.txt")
 
+CountFig(feature_c = "../data/clean/binCover.txt",
+           cutoff_pres = 75,
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt") +
+  facet_grid(Donor~., space = "free", scales = "free")
+
+
+
 
 ```
 
@@ -67,7 +75,8 @@ CompPhyloFig(feature_c = "../data/clean/MAGCover.txt",
            cutoff_pres = 75,
            method = "Assembly",
            mapfile = "../data/clean/mapfile.txt", 
-           DonA_tree = "../data/clean/MAGs_DonA.tree")
+           DonA_tree = "../data/clean/MAGs_DonA.tree",
+           DonB_tree = "../data/clean/MAGs_DonB.tree")
 
 ```
 
@@ -83,7 +92,8 @@ data_tile <- data.frame(feature = tree$tip.label)
 
 # Order data based on tree tip labels
     data_tile$feature <- factor(data_tile$feature, 
-                             levels = tree$tip.label[order(match(tree$tip.label, tree$tip.label))])
+                             levels = tree$tip.label[order(match(tree$tip.label, 
+                                                                 tree$tip.label))])
 
     p_tile <- ggplot(data_tile, aes(x = category, y = taxa, fill = value)) +
       geom_tile() +
