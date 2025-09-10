@@ -17,6 +17,7 @@ source('./functions.R')
 
 ```
 
+
 ## Bins
 
 ```{r}
@@ -25,6 +26,7 @@ CountFig(feature_c = "../data/clean/binCover.txt",
            cutoff_pres = 75,
            method = "Assembly",
            mapfile = "../data/clean/mapfile.txt")
+
 
 ```
 

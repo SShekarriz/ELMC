@@ -79,9 +79,13 @@ countColoniz <- function(donor_feature,
   
   coloniz_count = donor_feature %>%
     filter(coverage >= cutoff_pres) %>%
+    #group_by(Sample) %>%
+    #summarise(n_coloniz= n()) %>%
+    #left_join(map %>% select(Sample, Group, Category))
     group_by(Sample) %>%
-    summarise(n_coloniz= n()) %>%
-    left_join(map %>% select(Sample, Group, Category))
+    summarise(n_coloniz = n(), .groups = "drop") %>%
+    right_join(map %>% select(Sample, Group, Category), by = "Sample") %>%
+    mutate(n_coloniz = replace_na(n_coloniz, 0))
   
   return(coloniz_count)
 }
