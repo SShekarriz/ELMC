@@ -119,20 +119,36 @@ write.table("../data/clean/MAGids.txt", sep = "\t",
 
 ```
 
+# MAGs detect in at least one sample of pups(AB/BA/ABAB):
 
 ```{r}
 
-MAGids <- read.delim("../data/clean/MAGids.txt", col.names = "MAGs")
-MAGids %>%
-  filter(str_detect(MAGs, "DonA")) %>%
-  mutate(MAGs = gsub("DonA_bin_", "bin.", MAGs)) %>%
+feature_c = "../data/clean/MAGCover.txt"
+cutoff_pres = 75
+method = "Assembly"
+mapfile = "../data/clean/mapfile.txt"
+# DonorA
+donorA_feature <- DonFeature(feature_c = feature_c, donor = "DonA",
+                           cutoff_pres = cutoff_pres, method = method)
+finalA_identity <- identColoniz(donor_feature = donorA_feature, 
+                               cutoff_pres = cutoff_pres,
+                               mapfile = mapfile) 
+finalA_identity %>% distinct(feature) %>%
+  mutate(MAGs = gsub("DonA_bin_", "bin.", feature)) %>%
   mutate(MAGs = gsub("$", ".fa", MAGs)) %>%
+  select(MAGs) %>%
   write.table("../data/clean/MAGids_DonA.txt", 
             row.names = F, quote = F, col.names = F)
-MAGids %>%
-  filter(str_detect(MAGs, "DonB")) %>%
-  mutate(MAGs = gsub("DonB_bin_", "bin.", MAGs)) %>%
+# DonorB
+donorB_feature <- DonFeature(feature_c = feature_c, donor = "DonB",
+                           cutoff_pres = cutoff_pres, method = method)
+finalB_identity <- identColoniz(donor_feature = donorB_feature, 
+                               cutoff_pres = cutoff_pres,
+                               mapfile = mapfile) 
+finalB_identity %>% distinct(feature) %>%
+  mutate(MAGs = gsub("DonB_bin_", "bin.", feature)) %>%
   mutate(MAGs = gsub("$", ".fa", MAGs)) %>%
+  select(MAGs) %>%
   write.table("../data/clean/MAGids_DonB.txt", 
             row.names = F, quote = F, col.names = F)
 

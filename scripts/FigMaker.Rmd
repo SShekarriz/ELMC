@@ -76,7 +76,7 @@ CompFig(feature_c = "../data/clean/MAGCover.txt",
 ```{r}
 
 CompFigWithTree(feature_c = "../data/clean/MAGCover.txt",
-                cutoff_pres = 0,
+                cutoff_pres = 75,
                 method = "Assembly",
                 mapfile = "../data/clean/mapfile.txt",
                 treeA_file = "../data/clean/MAGs_DonA.tree")
@@ -85,11 +85,48 @@ CompFigWithTree(feature_c = "../data/clean/MAGCover.txt",
 ```
 
 
+```{r}
+
+feature_c = "../data/clean/MAGCover.txt"
+cutoff_pres = 75
+method = "Assembly"
+mapfile = "../data/clean/mapfile.txt"
+
+  # DonorA
+  donorA_feature <- DonFeature(feature_c = feature_c, donor = "DonA",
+                               cutoff_pres = cutoff_pres, method = method)
+  finalA_identity <- identColoniz(donor_feature = donorA_feature, 
+                               cutoff_pres = cutoff_pres,
+                               mapfile = mapfile) %>%
+                    mutate(Donor = paste("DonorA"))
+  # DonorB
+  donorB_feature <- DonFeature(feature_c = feature_c, donor = "DonB",
+                               cutoff_pres = cutoff_pres, method = method)
+  finalB_identity <- identColoniz(donor_feature = donorB_feature, 
+                                  cutoff_pres = cutoff_pres,
+                                  mapfile = mapfile) %>%
+                    mutate(Donor = paste("DonorB"))
+  
+  table <- finalA_identity %>%
+    rbind(finalB_identity) 
+  
+  table %>%
+    distinct(feature, Donor) -> test
+  
+
+```
+
+
+
+
+
+
+
 
 ```{r}
 
-CompFigWithTree_pheatmap(feature_c = "../data/clean/binCover.txt",
-                cutoff_pres = 0,
+CompFigWithTree_pheatmap(feature_c = "../data/clean/MAGCover.txt",
+                cutoff_pres = 75,
                 method = "Assembly",
                 mapfile = "../data/clean/mapfile.txt")
 
