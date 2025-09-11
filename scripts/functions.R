@@ -308,8 +308,39 @@ CompFigWithTree_pheatmap <- function(feature_c = "../data/clean/binCover.txt",
 }
 
 ########################################################################
+# count features. this is to generate a table of all counts. 
+# this is a slight modification to CountFig function. only removing the 
+# ggplot part of it.
+
+CountFeature <- function(feature_c = "../data/clean/binCover.txt", 
+                     cutoff_pres = 0,
+                     method = "Assembly",
+                     mapfile = "../data/clean/mapfile.txt") {
+  
+  # DonorA
+  donorA_feature <- DonFeature(feature_c = feature_c, donor = "DonA",
+                               cutoff_pres = cutoff_pres, method = method)
+  finalA_count <- countColoniz(donor_feature = donorA_feature, 
+                               cutoff_pres = cutoff_pres,
+                               mapfile = mapfile) %>%
+    mutate(Donor = paste("DonorA"))
+  # DonorB
+  donorB_feature <- DonFeature(feature_c = feature_c, donor = "DonB",
+                               cutoff_pres = cutoff_pres, method = method)
+  finalB_count <- countColoniz(donor_feature = donorB_feature, 
+                               cutoff_pres = cutoff_pres,
+                               mapfile = mapfile) %>%
+    mutate(Donor = paste("DonorB"))
+  
+  
+  # Combine and summarize data
+  summary_df <- bind_rows(finalA_count, finalB_count)
+ 
+  return(summary_df)
+}
 
 
+#########################################################################
 
 
 

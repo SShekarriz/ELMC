@@ -320,6 +320,42 @@ pwdis %>%
 ```
 
 
+counts of colonized features at different levels. one table of all features.
+
+```{r}
+#Bins
+CountFeature(feature_c = "../data/clean/binCover.txt",
+            cutoff_pres = 75,
+            method = "Assembly",
+            mapfile = "../data/clean/mapfile.txt") %>%
+  mutate(feature = paste("Bin")) -> count_bins
+#MAGs
+CountFeature(feature_c = "../data/clean/MAGCover.txt",
+            cutoff_pres = 75,
+            method = "Assembly",
+            mapfile = "../data/clean/mapfile.txt") %>%
+  mutate(feature = paste("MAG")) -> count_mags
+#Genes
+CountFeature(feature_c = "../data/clean/geneCover.txt",
+           cutoff_pres = 90,
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt")  %>%
+  mutate(feature = paste("Gene")) -> count_genes
+#Species
+CountFeature(feature_c = "../data/clean/speciesAbund.txt",
+           cutoff_pres = 0.001,
+           method = "Reads",
+           mapfile = "../data/clean/mapfile.txt") %>%
+  mutate(feature = paste("Species")) -> count_species
+
+count_bins %>%
+  bind_rows(count_mags) %>%
+  bind_rows(count_genes) %>%
+  bind_rows(count_species) %>%
+write.table("../data/clean/coloniz_counts.txt", sep = "\t",
+            quote = F, row.names = F, col.names = F)
+
+```
 
 
 
