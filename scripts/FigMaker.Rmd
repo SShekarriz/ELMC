@@ -176,3 +176,73 @@ CompFig(feature_c = "../data/clean/speciesAbund.txt",
 
 
 ```
+
+
+## colonization stats model
+
+```{r}
+
+library(lme4)
+library(lmerTest)
+
+#load mapfile
+mapfile <- read.csv("../data/clean/mapfile.txt", sep = "\t")
+mapfile %>%
+  distinct(Sample, Cage) -> mapfile
+
+# load the data
+coloniz <- read.csv("../data/clean/coloniz_counts.txt",
+                    sep = "\t")
+coloniz <- coloniz %>%
+  filter(Group %in% c("AB", "BA", "ABAB")) %>%
+  left_join(mapfile)
+
+# Z-score normalization of n_coloniz within each feature type
+df <- coloniz %>%
+  group_by(feature, Donor) %>%
+  mutate(n_coloniz_z = scale(n_coloniz)) %>%
+  ungroup()
+
+# Visualize the data:
+df %>%
+  group_by(Group, Donor, feature) %>%
+  summarise(mean_colonization = mean(n_coloniz_z), .groups = "drop") %>%
+  arrange(Group, Donor)
+
+ggplot(df, aes(x = Group, y = n_coloniz_z, fill = Donor)) +
+  geom_boxplot() +
+  facet_wrap(~feature) +
+  scale_color_manual(values = c("DonorA" = "#7b3294",
+                                  "DonorB" = "#008837")) +
+  scale_fill_manual(values = c("DonorA" = "#7b3294",
+                                  "DonorB" = "#008837")) +
+  theme_classic()
+
+
+#mixed mode:
+model <- lmer(n_coloniz_z ~ Group*Donor*feature + (1 | Sample) + (1 | Cage),
+                  data = df)
+
+resd_df = data.frame(resid = resid(model),
+                     pred = predict(model))
+ggplot(resd_df, aes(sample = resid)) +
+  geom_qq() +
+  geom_qq_line()
+
+ggplot(resd_df, aes(x = pred, y = resid)) +
+  geom_point() +
+  geom_smooth()
+
+ggplot(resd_df, aes(x = pred, y = abs(resid))) +
+  geom_point() +
+  geom_smooth()
+
+
+```
+
+
+
+
+
+
+

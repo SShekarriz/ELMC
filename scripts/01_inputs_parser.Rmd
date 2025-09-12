@@ -353,7 +353,7 @@ count_bins %>%
   bind_rows(count_genes) %>%
   bind_rows(count_species) %>%
 write.table("../data/clean/coloniz_counts.txt", sep = "\t",
-            quote = F, row.names = F, col.names = F)
+            quote = F, row.names = F, col.names = T)
 
 ```
 

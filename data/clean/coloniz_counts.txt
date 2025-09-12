@@ -1,3 +1,4 @@
+Sample	n_coloniz	Group	Category	Donor	feature
 A1E02M01	21	AB	Pup	DonorA	Bin
 A1E02M02	19	AB	Pup	DonorA	Bin
 A1E02M04	18	AB	Pup	DonorA	Bin
