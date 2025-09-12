@@ -121,8 +121,6 @@ mapfile = "../data/clean/mapfile.txt"
 
 
 
-
-
 ```{r}
 
 CompFigWithTree_pheatmap(feature_c = "../data/clean/MAGCover.txt",

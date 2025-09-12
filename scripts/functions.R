@@ -258,13 +258,16 @@ CompFigWithTree <- function(feature_c = "../data/clean/binCover.txt",
     arrange(Sample) %>%
     column_to_rownames("Sample")
   
+  
   # Plot tree + heatmap
   pA <- gheatmap(ggtree(treeA), heatmap_data,
                  offset = 0.1, width = 0.6,
+                 #colnames_offset_x = 0.2,
+                 colnames_offset_y = 0.5,
                  colnames_angle = 90, colnames_position = "bottom") +
     geom_tiplab(size=2, align=TRUE, linesize=.5) + 
-    #theme_tree2() +
-    scale_fill_gradient(low = "#eff3ff", high = "#08519c")
+    theme_tree2() +
+    scale_fill_gradient(low = "white", high = "#08519c")
   
   return(pA)
 }
