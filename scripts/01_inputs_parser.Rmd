@@ -49,9 +49,28 @@ bin.qualy <- read.csv("../Results/Assembly/bins_quality.txt", sep = "\t")
 bin.taxa <- read.csv("../Results/Assembly/bins_taxonomy.txt", sep = "\t")
 
 bin.qualy %>%
-  select(BinLab, Completeness, Contamination) %>%
+  select(BinLab, Bin.Id,Completeness, Contamination) %>%
   left_join(bin.taxa %>%
             select(BinLab, Phylum:Species)) %>%
+  # make a clean MAG label:
+  mutate(family_lab= case_when(
+  str_detect(Family, "\\d") ~ paste0("o_", Order),
+  TRUE ~ paste0(Family))) %>%
+  mutate(genus_lab = case_when(
+  Genus == "" ~ paste0("f_", family_lab),
+  str_detect(Genus, "\\d") ~ paste0("f_", family_lab),
+  TRUE ~ paste0("g_", Genus))) %>%
+  mutate(species_lab= case_when(
+    Species == "" ~ paste0(genus_lab),
+    str_detect(Species, "CAG") ~ paste0(genus_lab),
+    str_detect(Species, "UBA") ~ paste0(genus_lab),
+    str_detect(Species, "COE") ~ paste0(genus_lab),
+    str_detect(Species, "RC9") ~ paste0(genus_lab),
+    TRUE ~ Species)) %>%
+  mutate(label = paste(species_lab, 
+                        gsub("_", "", Bin.Id),
+                        sep = "_")) %>%
+  select(-Bin.Id, -family_lab, -genus_lab, -species_lab) %>%
 write.table("../data/clean/binQT.txt", sep = "\t", 
             row.names = F, quote = F)
 
@@ -356,15 +375,6 @@ write.table("../data/clean/coloniz_counts.txt", sep = "\t",
             quote = F, row.names = F, col.names = T)
 
 ```
-
-
-
-
-
-
-
-
-
 
 
 
