@@ -82,42 +82,20 @@ CompFigWithTree(feature_c = "../data/clean/MAGCover.txt",
                 treeA_file = "../data/clean/MAGs_DonA.tree")
 
 
+
 ```
 
 
 ```{r}
 
-feature_c = "../data/clean/MAGCover.txt"
-cutoff_pres = 75
-method = "Assembly"
-mapfile = "../data/clean/mapfile.txt"
+CompFigWithTree(feature_c = "../data/clean/MAGCover.txt",
+                cutoff_pres = 75,
+                method = "Assembly",
+                mapfile = "../data/clean/mapfile.txt",
+                treeA_file = "../data/clean/MAGs_DonA.tree")
 
-  # DonorA
-  donorA_feature <- DonFeature(feature_c = feature_c, donor = "DonA",
-                               cutoff_pres = cutoff_pres, method = method)
-  finalA_identity <- identColoniz(donor_feature = donorA_feature, 
-                               cutoff_pres = cutoff_pres,
-                               mapfile = mapfile) %>%
-                    mutate(Donor = paste("DonorA"))
-  # DonorB
-  donorB_feature <- DonFeature(feature_c = feature_c, donor = "DonB",
-                               cutoff_pres = cutoff_pres, method = method)
-  finalB_identity <- identColoniz(donor_feature = donorB_feature, 
-                                  cutoff_pres = cutoff_pres,
-                                  mapfile = mapfile) %>%
-                    mutate(Donor = paste("DonorB"))
-  
-  table <- finalA_identity %>%
-    rbind(finalB_identity) 
-  
-  table %>%
-    distinct(feature, Donor) -> test
-  
 
 ```
-
-
-
 
 
 
@@ -239,8 +217,65 @@ ggplot(resd_df, aes(x = pred, y = abs(resid))) +
 ```
 
 
+co-colonization and co-exclusion:
+this is all MAGs, not only detected ones:
+```{r}
+
+CompFeature(feature_c = "../data/clean/MAGCover.txt",
+           cutoff_pres = 75,
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt") -> coverage
+
+mag_taxa <- read.csv("../data/clean/binQT.txt", sep = "\t")
+mag_taxa <- mag_taxa %>%
+  rename(feature = "BinLab") %>%
+  select(-Completeness, -Contamination)
+
+coverage %>%
+  left_join(mag_taxa) -> table
 
 
+str(table)
+
+
+```
+
+
+```{r}
+
+df <- table
+
+df$Family <- as.factor(df$Family)
+df$Group <- as.factor(df$Group)
+
+#Filter for a specific group, e.g., "AB"
+df_ab <- df %>% filter(Group == "ABAB")
+
+# Create a binary presence/absence matrix: rows = Sample, columns = Family
+presence_matrix <- df_ab %>%
+  distinct(Sample, Family) %>%             
+  mutate(present = 1) %>%                   # Mark presence
+  pivot_wider(names_from = Family, values_from = present, values_fill = 0) %>%
+  column_to_rownames("Sample")              # Convert Sample to rownames
+
+# Compute co-occurrence matrix
+co_occurrence_matrix <- t(as.matrix(presence_matrix)) %*% as.matrix(presence_matrix)
+
+# Convert it to long format for ggplot2
+co_long <- as.data.frame(as.table(co_occurrence_matrix)) %>%
+  rename(Family1 = Var1, Family2 = Var2, CoOccurrence = Freq)
+
+# Plot using ggplot2
+ggplot(co_long, aes(x = Family1, y = Family2, fill = CoOccurrence)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "white", high = "blue") +
+  theme_minimal() +
+  labs(title = "Co-occurrence Matrix (Family Level)",
+       x = "Family", y = "Family", fill = "Co-occurrence") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
 
 
 

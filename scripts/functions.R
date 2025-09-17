@@ -261,12 +261,12 @@ CompFigWithTree <- function(feature_c = "../data/clean/binCover.txt",
   
   # Plot tree + heatmap
   pA <- gheatmap(ggtree(treeA), heatmap_data,
-                 offset = 0.1, width = 0.6,
-                 #colnames_offset_x = 0.2,
-                 colnames_offset_y = 0.5,
+                 offset = 0.4, width = 0.8,
+                 font.size = 2,
+                 #colnames_offset_y = 0.5,
                  colnames_angle = 90, colnames_position = "bottom") +
     geom_tiplab(size=2, align=TRUE, linesize=.5) + 
-    theme_tree2() +
+    #theme_tree2() +
     scale_fill_gradient(low = "white", high = "#08519c")
   
   return(pA)
@@ -344,8 +344,34 @@ CountFeature <- function(feature_c = "../data/clean/binCover.txt",
 
 
 #########################################################################
+# compare features. this is to generate a table of all pup features. 
+# this is a slight modification to CompFig function. only removing the 
+# ggplot part of it.
 
-
-
+# compare colonized feature in pups- wrapper for two above functions
+CompFeature <- function(feature_c = "../data/clean/binCover.txt", 
+                    cutoff_pres = 0,
+                    method = "Assembly",
+                    mapfile = "../data/clean/mapfile.txt") {
+  # DonorA
+  donorA_feature <- DonFeature(feature_c = feature_c, donor = "DonA",
+                               cutoff_pres = cutoff_pres, method = method)
+  finalA_identity <- identColoniz(donor_feature = donorA_feature, 
+                                  cutoff_pres = cutoff_pres,
+                                  mapfile = mapfile) %>%
+    mutate(Donor = paste("DonorA"))
+  # DonorB
+  donorB_feature <- DonFeature(feature_c = feature_c, donor = "DonB",
+                               cutoff_pres = cutoff_pres, method = method)
+  finalB_identity <- identColoniz(donor_feature = donorB_feature, 
+                                  cutoff_pres = cutoff_pres,
+                                  mapfile = mapfile) %>%
+    mutate(Donor = paste("DonorB"))
+  
+  table <- finalA_identity %>%
+    rbind(finalB_identity) 
+  
+  return(table)
+}
 
 
