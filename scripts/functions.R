@@ -212,9 +212,9 @@ CompFig <- function(feature_c = "../data/clean/binCover.txt",
     mutate(feature = fct_reorder2(feature, Donor, -feature_rank))
   
   # Plot
-  compfig <- ggplot(table_ranked, aes(feature, Sample, fill = coverage)) +
+  compfig <- ggplot(table_ranked, aes(Sample, feature, fill = coverage)) +
     geom_tile() +
-    facet_grid(Group ~ Donor, space = "free", scales = "free") +
+    facet_grid(Donor ~ Group, space = "free", scales = "free") +
     scale_fill_gradient(low = "#eff3ff", high = "#08519c") +
     theme_classic() +
     theme(axis.text.x = element_blank())
@@ -305,7 +305,7 @@ CompFigWithTree_pheatmap <- function(feature_c = "../data/clean/binCover.txt",
            cluster_rows = TRUE,
            cluster_cols = TRUE,
            show_colnames = TRUE,       # keeps sample names
-           show_rownames = FALSE,
+           show_rownames = TRUE,
            color = colorRampPalette(c("#eff3ff", "#08519c"))(100),
            main = "DonorA Colonization Pattern")
 }

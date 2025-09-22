@@ -72,6 +72,15 @@ CompFig(feature_c = "../data/clean/MAGCover.txt",
 
 ```
 
+```{r}
+
+
+
+
+```
+
+
+
 
 ```{r}
 
@@ -173,19 +182,23 @@ coloniz <- coloniz %>%
   filter(Group %in% c("AB", "BA", "ABAB")) %>%
   left_join(mapfile)
 
-# Z-score normalization of n_coloniz within each feature type
-df <- coloniz %>%
-  group_by(feature, Donor) %>%
-  mutate(n_coloniz_z = scale(n_coloniz)) %>%
-  ungroup()
+#load the feature.size
+feature_size <- read.csv("../data/clean/feature_size.txt")
+
+coloniz %>%
+  mutate(order = case_when(
+    Donor == "DonorA" & Group == "AB" ~ paste0("first"),
+    Donor == "DonorA" & Group == "BA" ~ paste0("second"),
+    Donor == "DonorB" & Group == "BA" ~ paste0("first"),
+    Donor == "DonorB" & Group == "AB" ~ paste0("second"),
+    Group == "ABAB" ~ paste("mixed"),
+    TRUE ~ paste0("none")
+    )) %>%
+  mutate(log.coloniz = log(n_coloniz)) %>%
+  left_join(feature_size)-> colniz.ord
 
 # Visualize the data:
-df %>%
-  group_by(Group, Donor, feature) %>%
-  summarise(mean_colonization = mean(n_coloniz_z), .groups = "drop") %>%
-  arrange(Group, Donor)
-
-ggplot(df, aes(x = Group, y = n_coloniz_z, fill = Donor)) +
+ggplot(colniz.ord, aes(x = Group, y = log.coloniz, fill = Donor)) +
   geom_boxplot() +
   facet_wrap(~feature) +
   scale_color_manual(values = c("DonorA" = "#7b3294",
@@ -196,9 +209,14 @@ ggplot(df, aes(x = Group, y = n_coloniz_z, fill = Donor)) +
 
 
 #mixed mode:
-model <- lmer(n_coloniz_z ~ Group*Donor*feature + (1 | Sample) + (1 | Cage),
-                  data = df)
-
+library(glmmtmb)
+colniz.ord$order = factor(colniz.ord$order, levels = c('mixed', 'second','first'))
+model <- lmer(log.coloniz ~ order*Donor*feature + 
+                offset(log(feature_size)) +
+                (Donor + feature | Sample) + 
+                (Donor + feature | Cage),
+                  data = colniz.ord)
+str(model)
 resd_df = data.frame(resid = resid(model),
                      pred = predict(model))
 ggplot(resd_df, aes(sample = resid)) +

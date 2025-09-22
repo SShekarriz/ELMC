@@ -376,7 +376,116 @@ write.table("../data/clean/coloniz_counts.txt", sep = "\t",
 
 ```
 
+the size of database for each feature
 
+```{r}
+
+#Bins
+DonFeature(feature_c = "../data/clean/binCover.txt", 
+           cutoff_pres = 75, 
+           donor = "DonA", method = "Assembly") %>%
+  distinct(feature) %>%
+  mutate(Donor = paste0("DonorA"),
+         f.name= paste0("Bin")) -> Afeature_bins
+
+DonFeature(feature_c = "../data/clean/binCover.txt", 
+           cutoff_pres = 75, 
+           donor = "DonB", method = "Assembly") %>%
+  distinct(feature) %>%
+  mutate(Donor = paste0("DonorB"),
+         f.name= paste0("Bin")) -> Bfeature_bins
+#MAGs
+DonFeature(feature_c = "../data/clean/MAGCover.txt", 
+           cutoff_pres = 75, 
+           donor = "DonA", method = "Assembly") %>%
+  distinct(feature) %>%
+  mutate(Donor = paste0("DonorA"),
+         f.name= paste0("MAG")) -> Afeature_mags
+DonFeature(feature_c = "../data/clean/MAGCover.txt", 
+           cutoff_pres = 75, 
+           donor = "DonB", method = "Assembly") %>%
+  distinct(feature) %>%
+  mutate(Donor = paste0("DonorB"),
+         f.name= paste0("MAG")) -> Bfeature_mags
+#Genes
+DonFeature(feature_c = "../data/clean/geneCover.txt", 
+           cutoff_pres = 90, 
+           donor = "DonA", method = "Assembly") %>%
+  distinct(feature) %>%
+  mutate(Donor = paste0("DonorA"),
+         f.name= paste0("Gene")) -> Afeature_genes
+DonFeature(feature_c = "../data/clean/geneCover.txt", 
+           cutoff_pres = 90, 
+           donor = "DonB", method = "Assembly") %>%
+  distinct(feature) %>%
+  mutate(Donor = paste0("DonorB"),
+         f.name= paste0("Gene")) -> Bfeature_genes
+#Species
+DonFeature(feature_c = "../data/clean/speciesAbund.txt",
+           cutoff_pres = 0.001,
+           donor = "DonA", method = "Reads") %>%
+  distinct(feature) %>%
+  mutate(Donor = paste0("DonorA"),
+         f.name= paste0("Species")) -> Afeature_species
+DonFeature(feature_c = "../data/clean/speciesAbund.txt",
+           cutoff_pres = 0.001,
+           donor = "DonB", method = "Reads") %>%
+   distinct(feature) %>%
+   mutate(Donor = paste0("DonorB"),
+         f.name= paste0("Species")) -> Bfeature_species
+
+Afeature_bins %>%
+  bind_rows(Bfeature_bins,
+            Afeature_mags,
+            Bfeature_mags,
+            Afeature_genes,
+            Bfeature_genes,
+            Afeature_species,
+            Bfeature_species) -> table
+
+table %>%
+  group_by(Donor, f.name) %>%
+  summarise(feature_size= n()) %>%
+  rename(feature = "f.name") %>%
+  write.csv("../data/clean/feature_size.txt", sep = "\t",
+            quote = F, row.names = F, col.names = T)
+
+```
+```{r}
+
+#load mapfile
+mapfile <- read.csv("../data/clean/mapfile.txt", sep = "\t")
+mapfile %>%
+  distinct(Sample, Cage) -> mapfile
+
+# load the data
+coloniz <- read.csv("../data/clean/coloniz_counts.txt",
+                    sep = "\t")
+coloniz <- coloniz %>%
+  filter(Group %in% c("AB", "BA", "ABAB")) %>%
+  left_join(mapfile)
+
+#load the feature.size
+feature_size <- read.csv("../data/clean/feature_size.txt")
+
+coloniz %>%
+  mutate(order = case_when(
+    Donor == "DonorA" & Group == "AB" ~ paste0("first"),
+    Donor == "DonorA" & Group == "BA" ~ paste0("second"),
+    Donor == "DonorB" & Group == "BA" ~ paste0("first"),
+    Donor == "DonorB" & Group == "AB" ~ paste0("second"),
+    Group == "ABAB" ~ paste("mixed"),
+    TRUE ~ paste0("none")
+    )) %>%
+  mutate(log.coloniz = log(n_coloniz)) %>%
+  left_join(feature_size)-> colniz.ord
+
+
+write.table(colniz.ord, "../data/clean/coloniz_model.txt", sep = "\t",
+            quote = F, row.names = F, col.names = T)
+
+
+```
 
 
 

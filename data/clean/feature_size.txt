@@ -1,0 +1,9 @@
+Donor,feature,feature_size
+DonorA,Bin,46
+DonorA,Gene,96857
+DonorA,MAG,32
+DonorA,Species,92
+DonorB,Bin,41
+DonorB,Gene,87906
+DonorB,MAG,27
+DonorB,Species,94
