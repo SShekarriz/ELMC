@@ -22,6 +22,7 @@ source('./functions.R')
 
 ```
 
+
 ## Bins
 
 ```{r}
@@ -171,31 +172,10 @@ library(lme4)
 library(lmerTest)
 
 #load mapfile
-mapfile <- read.csv("../data/clean/mapfile.txt", sep = "\t")
-mapfile %>%
-  distinct(Sample, Cage) -> mapfile
+colniz.ord <- read.csv("../data/clean/coloniz_model.txt",
+                       sep = "\t")
 
-# load the data
-coloniz <- read.csv("../data/clean/coloniz_counts.txt",
-                    sep = "\t")
-coloniz <- coloniz %>%
-  filter(Group %in% c("AB", "BA", "ABAB")) %>%
-  left_join(mapfile)
-
-#load the feature.size
-feature_size <- read.csv("../data/clean/feature_size.txt")
-
-coloniz %>%
-  mutate(order = case_when(
-    Donor == "DonorA" & Group == "AB" ~ paste0("first"),
-    Donor == "DonorA" & Group == "BA" ~ paste0("second"),
-    Donor == "DonorB" & Group == "BA" ~ paste0("first"),
-    Donor == "DonorB" & Group == "AB" ~ paste0("second"),
-    Group == "ABAB" ~ paste("mixed"),
-    TRUE ~ paste0("none")
-    )) %>%
-  mutate(log.coloniz = log(n_coloniz)) %>%
-  left_join(feature_size)-> colniz.ord
+str(colniz.ord)
 
 # Visualize the data:
 ggplot(colniz.ord, aes(x = Group, y = log.coloniz, fill = Donor)) +
@@ -209,7 +189,6 @@ ggplot(colniz.ord, aes(x = Group, y = log.coloniz, fill = Donor)) +
 
 
 #mixed mode:
-library(glmmtmb)
 colniz.ord$order = factor(colniz.ord$order, levels = c('mixed', 'second','first'))
 model <- lmer(log.coloniz ~ order*Donor*feature + 
                 offset(log(feature_size)) +

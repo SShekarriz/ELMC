@@ -1,0 +1,367 @@
+Fit the model and visualize the effects
+=======================================
+
+## Load packages
+
+
+```{r, message = FALSE}
+library(glmmTMB)
+library(tidyverse)
+theme_set(theme_bw())
+library(cowplot)
+library(emmeans)
+source('functions.R')
+```
+
+```{r}
+
+library(AfterSl1p) 
+
+```
+
+
+## Load data
+```{r}
+coloniz = read.delim('../../data/clean/coloniz_model.txt',
+                     sep = '\t',
+                     header = TRUE)
+
+# Munge data
+coloniz = (coloniz
+           %>% mutate(order = factor(order, levels = c('mixed', 'second', 'first')),
+                     feature = factor(feature, levels = c('Bin', 'MAG', 'Species', 'Gene')))
+           %>% group_by(feature)
+           %>% rename(log_count = log.coloniz,
+                      raw_count = n_coloniz)
+           %>% mutate(z_count = scale(raw_count)[,1],
+                      prop_count = raw_count/feature_size,
+                      zprop_count = scale(prop_count)[,1])
+           
+           %>% ungroup())
+
+# head(coloniz)
+```
+
+## Fit the model
+
+The maximal model for this dataset is 
+`zprop_count ~ order*Donor*feature + (Donor + feature | Sample) + (Donor + feature | Cage)`.
+
+Typically, when you fit a random slopes model with more than one slope in the
+random effect, R will estimate the variance of each slope across the levels of
+the random effects as well as the correlations between all the slopes within
+that random effect. However, this variance-covariance matrix is very
+data-hungry, and when there are not enough samples you can get what is called a
+"singular" fit. Basically, the variance or covariance estimates are too close to
+0.
+
+That is what was happening with our model:
+
+```{r}
+mod_tst <- glmmTMB(zprop_count ~ order*Donor*feature +
+                       (Donor + feature | Sample) +
+                      (Donor + feature | Cage),
+                     data = coloniz)
+```
+
+(The error was clearer with lme4, but that is actually what glmmTMB is
+complaining about here as well)
+
+Look at how this model estimates both variances (standard deviations) and
+correlations:
+
+```{r}
+VarCorr(mod_tst)
+```
+
+The first step in trying to solve this problem is to fit only the diagonal of
+the variance-covariance matrix. What that means is that it estimates the
+variances only and assumes the covariances are 0. I think this is reasonable: we
+don't expect any correlation between donor and feature. That model would be
+`zprop_count ~ order*Donor*feature + (Donor + feature || Sample) + (Donor + feature || Cage)`
+
+Note that in the random effects I have replaced `|` with `||`. That is the
+syntax for telling `glmmTMB` to only fit the variances, not the covariances.
+
+After I did that, I was still getting a singular fit:
+
+```{r}
+mod_tst <- glmmTMB(zprop_count ~ order*Donor*feature +
+                       (Donor + feature || Sample) +
+                      (Donor + feature || Cage),
+                     data = coloniz)
+```
+
+The next step is to remove parameters that have low variance until the fit is no
+longer singular. I looked at the variance estimates and found that the variance
+of `feature` within `Sample` was very small (1e-6 to 1e-4, instead of the 1e-1
+everything else gives):
+
+```{r}
+VarCorr(mod_tst)
+```
+
+being singular, I removed `feature` from the `Sample` random effect and
+tried again. This time the fit was not singular, so I stopped. That gives a
+final model of
+
+`zprop_count ~ order*Donor*feature + (Donor || Sample) + (Donor + feature || Cage)`.
+
+
+
+
+```{r}
+mod_prz <- glmmTMB(zprop_count ~ order*Donor*feature +
+                       (Donor || Sample) +
+                      (Donor + feature || Cage),
+                     data = coloniz)
+```
+
+## Look at model diagnostics
+
+The model diagnostics should be pretty robust to playing with the random effects
+like that, but let's check them anyway:
+
+```{r, fig.width=10}
+fit_df = (coloniz
+          %>% mutate(fit_prz = predict(mod_prz),
+                     res_prz = resid(mod_prz)))
+
+mk_plt_row(fit_df, 'prz')
+```
+
+It is a little worse than before, but nothing alarming. The zero-slope line fits
+within the CIs of both of those geom_smooth lines, so I'm calling it good.
+
+## Get the contrasts
+
+### Effect of Donor
+
+Overall effect of donor, averaged across feature types and colonization order:
+
+```{r}
+em_don = emmeans(mod_prz, specs = ~Donor)
+don_df = data.frame(em_don)
+pairs(em_don)
+
+ggplot(don_df, aes(Donor, emmean)) +
+  geom_jitter(data = coloniz, aes(y = zprop_count, colour = Donor),
+              alpha = 0.7, height = 0, width = 0.2) +
+  geom_point(size = 2) +
+  geom_linerange(aes(ymin = lower.CL, ymax = upper.CL)) +
+  scale_colour_manual(values = c('goldenrod3', 'skyblue3'))
+```
+
+Donor A is overall more effective than Donor B at colonizing mice (p < 0.0001).
+
+Effect of donor, within feature type:
+
+```{r}
+em_df = emmeans(mod_prz, specs = ~Donor*feature)
+pairs(em_df, by = 'feature')
+df_df = data.frame(em_df)
+
+
+ggplot(df_df, aes(Donor, emmean)) +
+  geom_jitter(data = coloniz, aes(y = zprop_count, colour = Donor),
+              alpha = 0.7, height = 0, width = 0.2) +
+  geom_point(size = 2) +
+  geom_linerange(aes(ymin = lower.CL, ymax = upper.CL)) +
+  scale_colour_manual(values = c('goldenrod3', 'skyblue3')) +
+  facet_wrap(~feature)
+```
+
+This effect remains strong across all feature types (p < 0.0001 in all cases).
+
+
+### Effect of order
+
+#### Overall
+
+```{r}
+em_ord = emmeans(mod_prz, specs = ~order)
+pairs(em_ord)
+ord_df = data.frame(em_ord)
+
+ggplot(ord_df, aes(order, emmean)) +
+  geom_jitter(data = coloniz, aes(y = zprop_count),
+              alpha = 0.7, height = 0, width = 0.2,
+              colour = 'deeppink4') +
+  geom_point(size = 2) +
+  geom_linerange(aes(ymin = lower.CL, ymax = upper.CL))
+```
+
+Overall, being first is 0.85 s.d. better than being second (p < 0.0001).
+Although it appears that being second is worse than being in a mixed colony, and
+being first is better than being in a mixed colony, the signs of these effects
+is not clear (p = 0.16 and 0.22, respectively).
+
+#### Separated by feature type
+
+```{r}
+em_of = emmeans(mod_prz, specs = ~order*feature)
+pairs(em_of, by = 'feature')
+of_df = data.frame(em_of)
+
+ggplot(of_df, aes(order, emmean)) +
+  geom_jitter(data = coloniz, aes(y = zprop_count),
+              alpha = 0.7, height = 0, width = 0.2,
+              colour = 'deeppink4') +
+  geom_point(size = 2) +
+  geom_linerange(aes(ymin = lower.CL, ymax = upper.CL)) +
+  facet_wrap(~feature)
+```
+
+The pattern is the same across all feature types; however, the p-value is only
+significant for three out of four feature types. It is p < 0.0001 for bins,
+MAGs, and genes, and p = 0.054 for species. No other p-values are significant.
+
+#### Separated by donor
+
+```{r}
+em_od = emmeans(mod_prz, specs = ~order*Donor)
+pairs(em_od, by = 'Donor')
+od_df = data.frame(em_od)
+
+
+ggplot(od_df, aes(order, emmean)) +
+  geom_jitter(data = coloniz, aes(y = zprop_count),
+              alpha = 0.7, height = 0, width = 0.2,
+              colour = 'deeppink4') +
+  geom_point(size = 2) +
+  geom_linerange(aes(ymin = lower.CL, ymax = upper.CL)) +
+  facet_wrap(~Donor)
+
+ggplot(od_df, aes(order, emmean)) +
+  geom_jitter(data = coloniz, aes(y = zprop_count, colour = Donor),
+              alpha = 0.7, height = 0, width = 0.2) +
+  geom_point(size = 2) +
+  geom_linerange(aes(ymin = lower.CL, ymax = upper.CL)) +
+  scale_colour_manual(values = c('goldenrod3', 'dodgerblue2'))
+```
+
+Again, the pattern persists, but it is noisier. 
+
+#### Separated by both feature type and donor
+
+```{r}
+em = emmeans(mod_prz, specs = ~ order*Donor*feature)
+pairs(em, by = c('feature', 'Donor'))
+all_df = data.frame(em)
+
+ggplot(all_df, aes(order, emmean)) +
+  geom_jitter(data = coloniz, aes(y = zprop_count, colour = Donor),
+              alpha = 0.7, height = 0, width = 0.2) +
+  geom_point(size = 2) +
+  geom_linerange(aes(ymin = lower.CL, ymax = upper.CL)) +
+  facet_wrap(~feature) +
+  scale_colour_manual(values = c('goldenrod3', 'dodgerblue2'))
+```
+
+Again the pattern persists, although not all p-values between first and second
+are <0.05. I'm not convinced this is the best way to show it though. Let's try a
+coefficient plot:
+
+```{r}
+pdf = (em
+       %>% pairs(by = c('feature', 'Donor'))
+       %>% data.frame()
+       %>% separate_wider_delim(contrast, ' - ', names = c('bottom','top'))
+       %>% mutate(bottom = factor(bottom, levels = c('first', 'second', 'mixed')),
+                  top = factor(top, levels = levels(bottom)),
+                  contrast = paste(top, bottom, sep = '-'),
+                  contrast = order_levs(factor(contrast), top, bottom),
+                  estimate = -1 * estimate))
+
+pdf
+
+ggplot(pdf, aes(feature, estimate, colour = Donor)) +
+  geom_point(position = position_dodge(width = 0.3)) +
+  geom_linerange(aes(ymin = estimate - (1.96*SE),
+                     ymax = estimate + (1.96*SE)),
+                 position = position_dodge(width = 0.3)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  coord_flip() +
+  ylab('< less colonization | more colonization >') +
+  facet_wrap(contrast~., ncol = 1, strip.position = 'right') +
+  scale_colour_manual(values = c('goldenrod3', 'dodgerblue2')) +
+  theme(axis.title.y = element_blank())
+```
+
+What we see here is that there is more colonization from first-microbiome bugs
+than from second-microbiome bugs, and that this effect is slightly stronger in
+donor A than donor B. This is true across all feature types except, somehow,
+disappears in donor A with species.
+
+There is also a pattern of more colonization from first-microbiome bugs than
+from mixed-microbiome bugs, but this effect is smaller and noisier and the
+p-values are not significant.
+
+Finally, there is a pattern of less colonization from second-microbiome bugs
+than from mixed-microbiome bugs but, again, this effect is smaller and the
+pattern is noisier
+
+## Assorted other coeffecient plots we may or may not want
+
+Effect of donor, split up by feature type:
+
+```{r}
+con_df = data.frame(pairs(em_df, by = 'feature'))
+con_df = (con_df
+       %>% separate_wider_delim(contrast, ' - ', names = c('bottom','top'))
+       %>% mutate(bottom = factor(bottom, levels = c('DonorB', 'DonorA')),
+                  top = factor(top, levels = levels(bottom)),
+                  contrast = paste(top, bottom, sep = '-'),
+                  contrast = order_levs(factor(contrast), top, bottom),
+                  Donor = NA)
+       %>% select(bottom, top, feature, Donor, everything()))
+
+ggplot(con_df, aes(feature, estimate)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_linerange(aes(ymin = estimate - (1.96*SE),
+                     ymax = estimate + (1.96*SE))) +
+  facet_wrap(~contrast, strip.position = 'right') +
+  ylab('< less colonization | more colonization >') +
+  coord_flip()
+```
+
+
+All the coefficients together
+
+```{r}
+tst = rbind(pdf, con_df)
+
+ggplot(tst, aes(feature, estimate, colour = Donor)) +
+  geom_point(position = position_dodge(width = 0.3)) +
+  geom_linerange(aes(ymin = estimate - (1.96*SE),
+                     ymax = estimate + (1.96*SE)),
+                 position = position_dodge(width = 0.3)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  coord_flip() +
+  ylab('< less colonization | more colonization >') +
+  facet_wrap(contrast~., ncol = 1, strip.position = 'right') +
+  scale_colour_manual(values = c('goldenrod3', 'dodgerblue2'),
+                      na.value = 'black') +
+  theme(axis.title.y = element_blank())
+```
+
+Facet by feature instead of by contrast:
+
+```{r}
+
+ggplot(tst, aes(contrast, estimate, colour = Donor)) +
+  geom_point(position = position_dodge(width = 0.3)) +
+  geom_linerange(aes(ymin = estimate - (1.96*SE),
+                     ymax = estimate + (1.96*SE)),
+                 position = position_dodge(width = 0.3)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  coord_flip() +
+  ylab('< less colonization | more colonization >') +
+  facet_wrap(feature~., ncol = 1, strip.position = 'right') +
+  scale_colour_manual(values = c('goldenrod3', 'dodgerblue2'),
+                      na.value = 'black') +
+  theme(axis.title.y = element_blank())
+```
+
+This seems pretty obviously worse, but I just included it as an example of options.
