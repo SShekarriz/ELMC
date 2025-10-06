@@ -451,6 +451,9 @@ table %>%
             quote = F, row.names = F, col.names = T)
 
 ```
+
+input data for stats models
+
 ```{r}
 
 #load mapfile
@@ -500,7 +503,50 @@ write.table(coloniz, "../data/clean/coloniz_model.txt", sep = "\t",
 
 ```
 
+input data for visualization of counts
 
+```{r}
+
+#load mapfile
+mapfile <- read.csv("../data/clean/mapfile.txt", sep = "\t")
+
+# load the data
+coloniz <- read.csv("../data/clean/coloniz_counts.txt",
+                    sep = "\t")
+#load the feature.size
+feature_size <- read.csv("../data/clean/feature_size.txt")
+
+coloniz %>%
+  mutate(order = case_when(
+    # pups
+    Donor == "DonorA" & Group == "AB" ~ paste0("first"),
+    Donor == "DonorA" & Group == "BA" ~ paste0("second"),
+    Donor == "DonorB" & Group == "BA" ~ paste0("first"),
+    Donor == "DonorB" & Group == "AB" ~ paste0("second"),
+    Group == "ABAB" ~ paste("mixed"),
+    # parents
+    Donor == "DonorA" & Group == "ParentA" ~ paste0("parent"),
+    Donor == "DonorA" & Group == "ParentB" ~ paste0("non-parent"),
+    Donor == "DonorB" & Group == "ParentA" ~ paste0("non-parent"),
+    Donor == "DonorB" & Group == "ParentB" ~ paste0("parent"),
+    Group == "ParentAB" ~ paste("mixed-parent"),
+    # Donors
+    Donor == "DonorA" & Group == "DonorA" ~ paste0("donor"),
+    Donor == "DonorA" & Group == "DonorB" ~ paste0("non-donor"),
+    Donor == "DonorB" & Group == "DonorA" ~ paste0("non-donor"),
+    Donor == "DonorB" & Group == "DonorB" ~ paste0("donor"),
+    TRUE ~ paste0("none")
+    )) %>%
+  mutate(order = factor(order, levels = c("donor", "non-donor",
+                                          "parent", "mixed-parent", "non-parent",
+                                          "first", "mixed", "second"))) -> coloniz
+
+write.table(coloniz, "../data/clean/coloniz_visual.txt", sep = "\t",
+            quote = F, row.names = F, col.names = T)
+
+
+
+```
 
 
 
