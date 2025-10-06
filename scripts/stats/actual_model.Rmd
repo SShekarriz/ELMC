@@ -25,21 +25,6 @@ library(AfterSl1p)
 coloniz = read.delim('../../data/clean/coloniz_model.txt',
                      sep = '\t',
                      header = TRUE)
-
-# Munge data
-coloniz = (coloniz
-           %>% mutate(order = factor(order, levels = c('mixed', 'second', 'first')),
-                     feature = factor(feature, levels = c('Bin', 'MAG', 'Species', 'Gene')))
-           %>% group_by(feature)
-           %>% rename(log_count = log.coloniz,
-                      raw_count = n_coloniz)
-           %>% mutate(z_count = scale(raw_count)[,1],
-                      prop_count = raw_count/feature_size,
-                      zprop_count = scale(prop_count)[,1])
-           
-           %>% ungroup())
-
-# head(coloniz)
 ```
 
 ## Fit the model

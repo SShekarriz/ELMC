@@ -478,10 +478,23 @@ coloniz %>%
     TRUE ~ paste0("none")
     )) %>%
   mutate(log.coloniz = log(n_coloniz)) %>%
-  left_join(feature_size)-> colniz.ord
+  left_join(feature_size)-> colniz
+
+# Munge data
+coloniz = (colniz
+           %>% mutate(order = factor(order, levels = c('mixed', 'second', 'first')),
+                     feature = factor(feature, levels = c('Bin', 'MAG', 'Species', 'Gene')))
+           %>% group_by(feature)
+           %>% rename(log_count = log.coloniz,
+                      raw_count = n_coloniz)
+           %>% mutate(z_count = scale(raw_count)[,1],
+                      prop_count = raw_count/feature_size,
+                      zprop_count = scale(prop_count)[,1])
+           
+           %>% ungroup())
 
 
-write.table(colniz.ord, "../data/clean/coloniz_model.txt", sep = "\t",
+write.table(coloniz, "../data/clean/coloniz_model.txt", sep = "\t",
             quote = F, row.names = F, col.names = T)
 
 
