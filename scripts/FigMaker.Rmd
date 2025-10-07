@@ -24,15 +24,49 @@ source('./functions.R')
 
 
 
-## Bins
+## Count number of colonization per feature
 
 ```{r}
 
 CountFig(ftype = "Bin")
-
+ggsave("../figs/Bin_CF.pdf",
+       width = 16, height = 10, 
+       units = "cm")
 
 ```
 
+
+```{r}
+
+CountFig(ftype = "MAG")
+ggsave("../figs/MAG_CF.pdf",
+       width = 16, height = 10, 
+       units = "cm")
+
+```
+
+
+```{r}
+
+CountFig(ftype = "Species")
+ggsave("../figs/Species_CF.pdf",
+       width = 16, height = 10, 
+       units = "cm")
+
+```
+
+
+```{r}
+
+CountFig(ftype = "Gene")
+ggsave("../figs/Gene_CF.pdf",
+       width = 16, height = 10, 
+       units = "cm")
+
+```
+
+
+## compare colonization within each feature
 
 
 ```{r}

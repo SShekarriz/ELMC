@@ -347,7 +347,7 @@ CountFig <- function(ftype = "Species") {
     theme_bw() +
     theme(
       axis.title = element_blank(),
-      #axis.text.x = element_text(angle = 90),
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
       legend.title = element_blank(),
       legend.position = c(0.98, 0.98),  # Top right corner
       legend.justification = c(1, 1)  # Align legend box to top right
