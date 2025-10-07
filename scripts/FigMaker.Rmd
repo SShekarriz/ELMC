@@ -68,8 +68,51 @@ ggsave("../figs/Gene_CF.pdf",
 
 ## compare colonization within each feature
 
+```{r}
+# labels
+BinQT <- read.csv("../data/clean/binQT.txt", sep = "\t")
+BinQT %>% mutate(feature = paste0(BinLab)) %>%
+  mutate(temp = gsub("_.*", "", feature)) %>%
+  mutate(label = paste(label, gsub("Don", "", temp), sep = "")) %>%
+  select(feature, label)-> BinQT
+#
+CompFeature(feature_c = "../data/clean/binCover.txt",
+           cutoff_pres = 75,
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt") -> table
+
+fig <- CompFig_pheatmap(table = table,
+                 flabel = BinQT)
+ggsave("../figs/Bin_pheatmap.pdf", plot = fig, width = 9, height = 11)
+
+```
+
 
 ```{r}
+# labels
+BinQT <- read.csv("../data/clean/binQT.txt", sep = "\t")
+BinQT %>% mutate(feature = paste0(BinLab)) %>%
+  mutate(temp = gsub("_.*", "", feature)) %>%
+  mutate(label = paste(label, gsub("Don", "", temp), sep = "")) %>%
+  select(feature, label)-> BinQT
+#
+CompFeature(feature_c = "../data/clean/MAGCover.txt",
+           cutoff_pres = 75,
+           method = "Assembly",
+           mapfile = "../data/clean/mapfile.txt") -> table
+
+fig <- CompFig_pheatmap(table = table,
+                 flabel = BinQT)
+ggsave("../figs/MAG_pheatmap.pdf", plot = fig, width = 9, height = 9)
+
+```
+
+
+
+
+
+```{r}
+
 
 CompFig(feature_c = "../data/clean/binCover.txt",
            cutoff_pres = 75,
@@ -79,32 +122,6 @@ CompFig(feature_c = "../data/clean/binCover.txt",
 
 ```
 
-## MAGs
-
-```{r}
-
-CountFig(feature_c = "../data/clean/MAGCover.txt",
-           cutoff_pres = 75,
-           method = "Assembly",
-           mapfile = "../data/clean/mapfile.txt") 
-
-```
-
-```{r}
-
-CompFig(feature_c = "../data/clean/MAGCover.txt",
-           cutoff_pres = 75,
-           method = "Assembly",
-           mapfile = "../data/clean/mapfile.txt")
-
-```
-
-```{r}
-
-
-
-
-```
 
 
 
@@ -118,187 +135,14 @@ CompFigWithTree(feature_c = "../data/clean/MAGCover.txt",
                 treeA_file = "../data/clean/MAGs_DonA.tree")
 
 
-
-```
-
-
-```{r}
-
-CompFigWithTree(feature_c = "../data/clean/MAGCover.txt",
-                cutoff_pres = 75,
-                method = "Assembly",
-                mapfile = "../data/clean/mapfile.txt",
-                treeA_file = "../data/clean/MAGs_DonA.tree")
-
-
 ```
 
 
 
-```{r}
-
-CompFigWithTree_pheatmap(feature_c = "../data/clean/MAGCover.txt",
-                cutoff_pres = 75,
-                method = "Assembly",
-                mapfile = "../data/clean/mapfile.txt")
-
-
-```
 
 
 
-## Genes
 
-```{r}
-
-CountFig(feature_c = "../data/clean/geneCover.txt",
-           cutoff_pres = 90,
-           method = "Assembly",
-           mapfile = "../data/clean/mapfile.txt") 
-
-```
-
-```{r}
-
-CompFig(feature_c = "../data/clean/geneCover.txt",
-           cutoff_pres = 90,
-           method = "Assembly",
-           mapfile = "../data/clean/mapfile.txt") 
-
-
-```
-
-## Species
-
-```{r}
-
-CountFig(feature_c = "../data/clean/speciesAbund.txt",
-           cutoff_pres = 0.001,
-           method = "Reads",
-           mapfile = "../data/clean/mapfile.txt") 
-
-```
-
-```{r}
-
-CompFig(feature_c = "../data/clean/speciesAbund.txt",
-           cutoff_pres = 0.001,
-           method = "Reads",
-           mapfile = "../data/clean/mapfile.txt") 
-
-
-```
-
-
-## colonization stats model
-
-```{r}
-
-library(lme4)
-library(lmerTest)
-
-#load mapfile
-colniz.ord <- read.csv("../data/clean/coloniz_model.txt",
-                       sep = "\t")
-
-str(colniz.ord)
-
-# Visualize the data:
-ggplot(colniz.ord, aes(x = Group, y = log.coloniz, fill = Donor)) +
-  geom_boxplot() +
-  facet_wrap(~feature) +
-  scale_color_manual(values = c("DonorA" = "#7b3294",
-                                  "DonorB" = "#008837")) +
-  scale_fill_manual(values = c("DonorA" = "#7b3294",
-                                  "DonorB" = "#008837")) +
-  theme_classic()
-
-
-#mixed mode:
-colniz.ord$order = factor(colniz.ord$order, levels = c('mixed', 'second','first'))
-model <- lmer(log.coloniz ~ order*Donor*feature + 
-                offset(log(feature_size)) +
-                (Donor + feature | Sample) + 
-                (Donor + feature | Cage),
-                  data = colniz.ord)
-str(model)
-resd_df = data.frame(resid = resid(model),
-                     pred = predict(model))
-ggplot(resd_df, aes(sample = resid)) +
-  geom_qq() +
-  geom_qq_line()
-
-ggplot(resd_df, aes(x = pred, y = resid)) +
-  geom_point() +
-  geom_smooth()
-
-ggplot(resd_df, aes(x = pred, y = abs(resid))) +
-  geom_point() +
-  geom_smooth()
-
-
-```
-
-
-co-colonization and co-exclusion:
-this is all MAGs, not only detected ones:
-```{r}
-
-CompFeature(feature_c = "../data/clean/MAGCover.txt",
-           cutoff_pres = 75,
-           method = "Assembly",
-           mapfile = "../data/clean/mapfile.txt") -> coverage
-
-mag_taxa <- read.csv("../data/clean/binQT.txt", sep = "\t")
-mag_taxa <- mag_taxa %>%
-  rename(feature = "BinLab") %>%
-  select(-Completeness, -Contamination)
-
-coverage %>%
-  left_join(mag_taxa) -> table
-
-
-str(table)
-
-
-```
-
-
-```{r}
-
-df <- table
-
-df$Family <- as.factor(df$Family)
-df$Group <- as.factor(df$Group)
-
-#Filter for a specific group, e.g., "AB"
-df_ab <- df %>% filter(Group == "ABAB")
-
-# Create a binary presence/absence matrix: rows = Sample, columns = Family
-presence_matrix <- df_ab %>%
-  distinct(Sample, Family) %>%             
-  mutate(present = 1) %>%                   # Mark presence
-  pivot_wider(names_from = Family, values_from = present, values_fill = 0) %>%
-  column_to_rownames("Sample")              # Convert Sample to rownames
-
-# Compute co-occurrence matrix
-co_occurrence_matrix <- t(as.matrix(presence_matrix)) %*% as.matrix(presence_matrix)
-
-# Convert it to long format for ggplot2
-co_long <- as.data.frame(as.table(co_occurrence_matrix)) %>%
-  rename(Family1 = Var1, Family2 = Var2, CoOccurrence = Freq)
-
-# Plot using ggplot2
-ggplot(co_long, aes(x = Family1, y = Family2, fill = CoOccurrence)) +
-  geom_tile(color = "white") +
-  scale_fill_gradient(low = "white", high = "blue") +
-  theme_minimal() +
-  labs(title = "Co-occurrence Matrix (Family Level)",
-       x = "Family", y = "Family", fill = "Co-occurrence") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-```
 
 
 

@@ -99,7 +99,8 @@ identColoniz <- function(donor_feature,
   coloniz_ident = donor_feature %>%
     filter(coverage >= cutoff_pres) %>%
     left_join(map %>% select(Sample, Group, Category)) %>%
-    filter(Category == "Pup") %>% select(-Category)
+    #filter(Category == "Pup") %>% 
+    select(-Category)
   
   return(coloniz_ident)
 }
@@ -207,40 +208,50 @@ CompFigWithTree <- function(feature_c = "../data/clean/binCover.txt",
 
 ####################################################################
 
-CompFigWithTree_pheatmap <- function(feature_c = "../data/clean/binCover.txt",
-                                     cutoff_pres = 0,
-                                     method = "Assembly",
-                                     mapfile = "../data/clean/mapfile.txt") {
+CompFig_pheatmap <- function(table, flabel) {
   
-  # DonorA data
-  donorA_feature <- DonFeature(feature_c = feature_c, donor = "DonA",
-                               cutoff_pres = cutoff_pres, method = method)
-  
-  finalA_identity <- identColoniz(donor_feature = donorA_feature, 
-                                  cutoff_pres = cutoff_pres,
-                                  mapfile = mapfile) %>%
-    mutate(Donor = "DonorA")
+  # table: comparison of features, use CompFeature() to generate this.
+  # flabel: feature labels, how you want to be shown in the final fig
+  # must contains feature, and label columns
+ 
+  table %>%
+    left_join(flabel) -> table
   
   # Reshape to wide format
-  heatmap_data <- finalA_identity %>%
-    select(feature, Sample, coverage) %>%
+  heatmap_data <- table %>%
+    select(label, Sample, coverage) %>%
     pivot_wider(names_from = Sample, values_from = coverage, values_fill = 0) %>%
-    column_to_rownames("feature")
+    column_to_rownames("label")
   
   # Create annotation data for samples
-  sample_group <- finalA_identity %>%
+  sample_group <- table %>%
     distinct(Sample, Group) %>%
     column_to_rownames("Sample")
+  label_group <- table %>%
+    distinct(label, Donor) %>%
+    column_to_rownames("label")
+  
+  annotation_colors_manual <- list(
+    Group = c(DonorA = "#40004b", ParentA = "#9970ab", AB = "#e7d4e8",
+              DonorB = "#00441b", ParentB = "#5aae61", BA = "#d9f0d3",
+              ParentAB = "#e08214", ABAB = "#fdb863"),
+    Donor = c(DonorA = "#7b3294", DonorB = "#008837")
+  )
   
   # Plot heatmap with sample names and group annotation
-  pheatmap(mat = heatmap_data,
-           annotation_col = sample_group,
-           cluster_rows = TRUE,
-           cluster_cols = TRUE,
-           show_colnames = TRUE,       # keeps sample names
-           show_rownames = TRUE,
-           color = colorRampPalette(c("#eff3ff", "#08519c"))(100),
-           main = "DonorA Colonization Pattern")
+  fig <- pheatmap(mat = heatmap_data,
+                  #scale = "row",
+                  cutree_cols=3,
+                  annotation_col = sample_group,
+                  annotation_row = label_group,
+                  annotation_colors = annotation_colors_manual,
+                  cluster_rows = TRUE,
+                  cluster_cols = TRUE,
+                  show_colnames = FALSE,       # keeps sample names
+                  show_rownames = TRUE,
+                  color = colorRampPalette(c("white", "#0868ac"))(100))
+                  #main = "Colonization Pattern")
+  return(fig)
 }
 
 ########################################################################
@@ -282,7 +293,7 @@ CountFeature <- function(feature_c = "../data/clean/binCover.txt",
 # ggplot part of it.
 
 # compare colonized feature in pups- wrapper for two above functions
-CompFeature <- function(feature_c = "../data/clean/binCover.txt", 
+        CompFeature <- function(feature_c = "../data/clean/binCover.txt", 
                     cutoff_pres = 0,
                     method = "Assembly",
                     mapfile = "../data/clean/mapfile.txt") {
