@@ -87,73 +87,6 @@ countColoniz <- function(donor_feature,
   return(coloniz_count)
 }
 
-# get total coloniation count- wraper for two above functions
-CountFig <- function(feature_c = "../data/clean/binCover.txt", 
-                        cutoff_pres = 0,
-                        method = "Assembly",
-                        mapfile = "../data/clean/mapfile.txt") {
-  
-  # DonorA
-  donorA_feature <- DonFeature(feature_c = feature_c, donor = "DonA",
-                              cutoff_pres = cutoff_pres, method = method)
-  finalA_count <- countColoniz(donor_feature = donorA_feature, 
-                              cutoff_pres = cutoff_pres,
-                              mapfile = mapfile) %>%
-                  mutate(Donor = paste("DonorA"))
-  # DonorB
-  donorB_feature <- DonFeature(feature_c = feature_c, donor = "DonB",
-                               cutoff_pres = cutoff_pres, method = method)
-  finalB_count <- countColoniz(donor_feature = donorB_feature, 
-                               cutoff_pres = cutoff_pres,
-                               mapfile = mapfile) %>%
-                  mutate(Donor = paste("DonorB"))
-  
-  
-  # Combine and summarize data
-  summary_df <- bind_rows(finalA_count, finalB_count) %>%
-    group_by(Donor, Category, Group) %>%
-    summarise(
-      mean_coloniz = mean(n_coloniz, na.rm = TRUE),
-      sd_coloniz = sd(n_coloniz, na.rm = TRUE),
-      .groups = "drop"
-    )
-  
-  summary_df$Group <- factor(summary_df$Group, 
-                             levels = c("DonorA", "DonorB",
-                               "ParentA", "ParentB", "ParentAB",
-                               "AB", "BA", "ABAB"))
-
-  countfig <- ggplot(summary_df, aes(x = Group, 
-                                     y = mean_coloniz, 
-                                     group = Donor)) +
-    # Add shaded rectangle between DonorA and DonorB
-    geom_rect(data = NULL, 
-              aes(xmin = which(levels(summary_df$Group) == "DonorA"), 
-                  xmax = which(levels(summary_df$Group) == "ParentAB"), 
-                  ymin = -Inf, ymax = Inf),
-              fill = "#252525", alpha = 0.009) +
-    geom_line(size = 1, aes(color = Donor)) +
-    geom_point(size = 1, aes(color = Donor)) +
-    geom_ribbon(aes(ymin = mean_coloniz - sd_coloniz, 
-                    ymax = mean_coloniz + sd_coloniz,
-                    fill = Donor), alpha = 0.2) +
-    scale_color_manual(values = c("DonorA" = "#7b3294",
-                                  "DonorB" = "#008837")) +
-    scale_fill_manual(values = c("DonorA" = "#7b3294",
-                                  "DonorB" = "#008837")) +
-    theme_bw() +
-    theme(
-      axis.title = element_blank(),
-      axis.text.x = element_text(angle = 90),
-      legend.title = element_blank(),
-      legend.position = c(0.98, 0.98),  # Top right corner
-      legend.justification = c(1, 1)  # Align legend box to top right
-    )
-  
-  
-  return(countfig)
-}
-
 # a function to compare the colonized feature in pups
 identColoniz <- function(donor_feature,
                          cutoff_pres = 0,
@@ -374,4 +307,72 @@ CompFeature <- function(feature_c = "../data/clean/binCover.txt",
   return(table)
 }
 
+# a function to visualize colonization counts,
+# based on a parsed table of counts
+# it know where the input parsed file is located, 
+# just select the feature of interest to visualize
+CountFig <- function(ftype = "Species") {
+  # select your feature type
+  table <- read.csv("../data/clean/coloniz_visual.txt", sep = "\t")
+  table <- table %>% filter(feature == ftype)
+  
+  sort_orders <- c("donor", "non-donor",
+                   "parent", "non-parent", "mixed-parent",
+                   "first", "second", "mixed")
+  sort_groups <- c("DonorA", "DonorB",
+                   "ParentA", "ParentB", "ParentAB",
+                   "AB", "BA", "ABAB")
+  table$order = factor(table$order, levels = sort_orders)
+  table$Group = factor(table$Group, levels = sort_groups)
+  # Combine and summarize data
+  summary_df <- table %>%
+    group_by(Donor, order, Category) %>%
+    summarise(
+      mean_coloniz = mean(n_coloniz, na.rm = TRUE),
+      sd_coloniz = sd(n_coloniz, na.rm = TRUE),
+      .groups = "drop"
+    )
+  
+  p1 <- ggplot(summary_df, aes(x = order, y = mean_coloniz, 
+                               group = Donor)) +
+    geom_line(size = 1, aes(color = Donor)) +
+    geom_point(size = 1, aes(color = Donor)) +
+    geom_ribbon(aes(ymin = mean_coloniz - sd_coloniz, 
+                    ymax = mean_coloniz + sd_coloniz,
+                    fill = Donor), alpha = 0.2) +
+    scale_color_manual(values = c("DonorA" = "#7b3294",
+                                  "DonorB" = "#008837")) +
+    scale_fill_manual(values = c("DonorA" = "#7b3294",
+                                 "DonorB" = "#008837")) +
+    theme_bw() +
+    theme(
+      axis.title = element_blank(),
+      #axis.text.x = element_text(angle = 90),
+      legend.title = element_blank(),
+      legend.position = c(0.98, 0.98),  # Top right corner
+      legend.justification = c(1, 1)  # Align legend box to top right
+    )
+  
+  summary_df2 <- table %>%
+    group_by(Donor, Group, Category) %>%
+    summarise(
+      mean_coloniz = mean(n_coloniz, na.rm = TRUE),
+      sd_coloniz = sd(n_coloniz, na.rm = TRUE),
+      .groups = "drop"
+    )
+  
+  p2 <- ggplot(summary_df2, aes(x = Group, y = mean_coloniz, 
+                                fill = Donor)) +
+    geom_bar(stat = "identity") +
+    scale_fill_manual(values = c("DonorA" = "#7b3294",
+                                 "DonorB" = "#008837")) +
+    theme_bw() +
+    theme(axis.title = element_blank(),
+          axis.text.x = element_text(angle = 90),
+          legend.position = "none")
+  
+  fig <- cowplot::plot_grid(p1, p2, ncol = 2, rel_widths = c(3, 1))
+  
+  return(fig)
+}
 
