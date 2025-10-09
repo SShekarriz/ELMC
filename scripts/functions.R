@@ -387,3 +387,144 @@ CountFig <- function(ftype = "Species") {
   return(fig)
 }
 
+# a function to visualize Family-level profile of metaphlan4
+profiler.fam <- function(metaphlan = "../data/clean/speciesAbund.txt",
+                         mapfile = "../data/clean/mapfile.txt") {
+  # requires long format of metaphlan4 feature table
+  read.csv(mapfile, sep = "\t") %>%
+    select(Sample, Group, Category) -> mapfile
+  read.csv(metaphlan, sep = "\t") -> table
+  table %>%  
+    distinct(feature) %>%
+    mutate(temp=feature) %>%
+    separate(temp, c("Kingdom", "Phylum", "Class", 
+                     "Order", "Family", "Genus", 
+                     "Species", "SGB"), sep = "[|]") -> lineage
+  
+  table %>%
+    left_join(mapfile) %>%
+    left_join(lineage %>% 
+                select(feature, Family)) -> Ctab
+  ################################
+  #select top 10 families
+  Ctab %>%
+    count(Family, wt = coverage) %>%
+    filter(!is.na(Family)) %>%
+    arrange(desc(n)) %>%
+    pull(Family) -> tfam
+  tfam10 <- tfam[1:10]
+  # edit a new family column
+  Ctab %>%
+    mutate(Family_lab= case_when(Family %in% tfam10 ~ paste(Family),
+                                 TRUE ~ paste("other"))) -> Ctab
+  # sum the abundance for each class, across all IDs, & sort the result
+  Ctab %>%
+    count(Family_lab, wt = coverage) %>%
+    arrange(n) %>%
+    pull(Family_lab) -> sort.family
+  
+  group_order = c("DonorA","ParentA", "AB",
+                  "DonorB", "ParentB", "BA",
+                  "ParentAB", "ABAB")
+  
+  Ctab$Family_lab <- factor(Ctab$Family_lab, levels = sort.family)
+  Ctab$Group <- factor(Ctab$Group, levels = group_order)
+  
+  family_col= c(
+    "f__Bacteroidales_unclassified" = "#6a3d9a",
+    "f__Muribaculaceae" = "#33a02c",
+    "f__Lachnospiraceae" = "#1f78b4",
+    "f__Rikenellaceae" = "#ff7f00",
+    "f__Lactobacillaceae" = "#b2df8a",
+    "f__Odoribacteraceae" = "#fdbf6f",
+    "f__Helicobacteraceae" = "#ffff99",
+    "f__FGB8157" =  "#a6cee3",
+    "f__FGB9644" = "#e31a1c",
+    "f__FGB9318" = "#f781bf",
+    "other" = "#808080"
+  )
+  
+  fig <- Ctab %>%
+    ggplot(aes(Sample,coverage, fill=Family_lab, color=Family_lab)) +
+    geom_bar(stat = "identity") +
+    scale_fill_manual(values = family_col,
+                      guide = guide_legend(reverse = TRUE)) +
+    scale_color_manual(values = family_col,
+                       guide = guide_legend(reverse = TRUE)) +
+    facet_grid(~Group, scales = "free", space = "free") +
+    scale_y_continuous(expand = c(0, 0), limits = c(0, NA)) + 
+    theme_classic() +
+    theme(legend.position = "bottom", legend.title = element_blank(),
+          #legend.text = element_text(size=7),
+          axis.text.x = element_blank(),
+          strip.text.x = element_text(angle = 90)) +
+    xlab("Samples") + ylab("Relative Abundance")
+  
+  return(fig)
+  
+}
+
+vis.shannon <- function(Shannon = "../data/clean/diversity_shannon.txt",
+                        Mapfile = "../data/clean/mapfile.txt") {
+  
+  read.csv(Mapfile, sep = "\t") -> mapfile
+  read.csv(Shannon, sep = "\t") %>%
+    left_join(mapfile) -> table
+  
+  group_order = c("DonorA","ParentA", "AB",
+                  "DonorB", "ParentB", "BA",
+                  "ParentAB", "ABAB")
+  
+  table$Group <- factor(table$Group, levels = group_order)
+  ggplot(table, aes(x = Group, y = Shannon)) +
+    geom_violin(outlier.color = NA) +
+    geom_point(size=3,shape=21, 
+               position = position_dodge(0.2)) + 
+    ggpubr::geom_signif(test = "t.test",
+                        comparisons = list(c("ParentA", "AB"),
+                                           c("ParentB", "BA"),
+                                           c("ParentAB", "ABAB")),
+                        map_signif_level = FALSE,
+                        step_increase = 0.1) +
+    theme_classic() +
+    theme(legend.title = element_blank(),
+          text = element_text(size = 10),
+          legend.position = "none", axis.title.x = element_blank()) +
+    ylab("Shannon")
+}
+
+vis.pairBray <- function(Paired_bray = "../data/clean/paired_bray.txt",
+                         Mapfile = "../data/clean/mapfile.txt"){
+  
+  table <- read.csv(Paired_bray, sep = "\t")
+  
+  group_order = c("DonorA","ParentA", "AB",
+                  "DonorB", "ParentB", "BA",
+                  "ParentAB", "ABAB")
+  
+  table$Group_2 <- factor(table$Group_2, levels = group_order)
+  
+  table %>%
+    ggplot(aes(Group_1, value, color = Group_1)) +
+    geom_boxplot(outlier.color = NA) +
+    geom_point(size=3,shape=21, 
+               position = position_dodge(0.2)) + 
+    facet_grid(~Group_2, space = "free", scales = "free") +
+    scale_color_manual(values = c("DonorA" = "#7b3294",
+                                  "DonorB" = "#008837")) +
+    ggpubr::geom_signif(test = "t.test",
+                        comparisons = list(c("DonorA", "DonorB")),
+                        map_signif_level = FALSE,
+                        step_increase = 0.1, color = "black") +
+    theme_classic() +
+    theme(legend.title = element_blank(),
+          text = element_text(size = 10),
+          legend.position = "none", axis.title.x = element_blank()) +
+    ylab("Bray-Curtis")
+  
+  
+}
+
+
+
+

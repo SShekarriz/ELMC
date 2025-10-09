@@ -548,6 +548,64 @@ write.table(coloniz, "../data/clean/coloniz_visual.txt", sep = "\t",
 
 ```
 
+## shannon diversity
+
+```{r}
+
+read.csv(
+"../Results/Reads/diversity_analysis/merged_metaphlan4_shannon.tsv",
+sep = "\t") %>%
+  rownames_to_column("Sample") %>%
+  mutate(Sample = gsub(".mp.profile", "", Sample)) %>%
+  # sample with low depth:
+  filter(Sample != "A1E10M") %>%
+  rename(Shannon = "diversity_shannon") %>%
+write.table("../data/clean/diversity_shannon.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+```
+
+## bray-curtis distance
+
+```{r}
+
+read.csv("../data/clean/mapfile.txt", sep = "\t") %>%
+  select(Sample, Group)-> mapfile
+read.csv("../Results/Reads/diversity_analysis/merged_metaphlan4_bray-curtis.tsv",
+         sep = "\t") %>%
+  rownames_to_column("Sample_1") %>%
+  gather(Sample_2, value, -Sample_1) %>%
+  filter(as.character(Sample_1) != as.character(Sample_2)) %>%
+  mutate_if(is.factor, as.character) %>%
+  mutate(Sample_1 = gsub(".mp.profile", "", Sample_1),
+         Sample_2 = gsub(".mp.profile", "", Sample_2))-> dis.tbl
+
+# two mapfile for each variable in matrix
+mapfile -> V1.tbl
+colnames(V1.tbl) <- paste(colnames(V1.tbl), "1", sep = "_")
+mapfile-> V2.tbl
+colnames(V2.tbl) <- paste(colnames(V2.tbl), "2", sep = "_")
+
+#merging all info together
+dis.tbl %>%
+  left_join(V1.tbl) %>%
+  left_join(V2.tbl) %>%
+  # comparing all samples to donor's
+  filter(Sample_1 %in% c("X608", "Wild116")) %>%
+  filter(!Sample_2 %in% c("X608", "Wild116")) %>%
+  # One of parent A sample has a very low depth of sequencing
+  # removing this sample from the run
+  filter(Sample_2 != "A1E10M") %>%
+write.table("../data/clean/paired_bray.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+
+```
+
+
+
+
+
 
 
 
