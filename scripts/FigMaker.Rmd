@@ -63,6 +63,14 @@ ggsave("../figs/cumulative_contigs.pdf", width = 12,
 
 ```
 
+```{r}
+
+vis.bins()
+ggsave("../figs/bins_quality.pdf", width = 18, 
+       height = 8, units = "cm")
+
+```
+
 
 ## Count number of colonization per feature
 

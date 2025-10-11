@@ -544,4 +544,66 @@ vis.contigs <- function(
           legend.position = "none", legend.title = element_blank())
 }
 
-
+vis.bins <- function(
+    binQT = "../data/clean/binQT.txt"){
+  
+  read.csv(binQT, sep = "\t") -> table
+  table %>%
+    mutate(Sample = case_when(str_detect(BinLab, "DonA") ~ paste("DonorA"),
+                              str_detect(BinLab, "DonB") ~ paste("DonorB"),
+                              TRUE ~ paste("other")
+    )) -> table
+  
+  p1 <- table %>%
+    ggplot(aes(Contamination, Completeness, color=Sample)) +
+    geom_point(size=3,shape=21, alpha = 0.8,
+               position = position_dodge(0.2)) +
+    scale_x_sqrt() + scale_y_sqrt() +
+    geom_vline(xintercept = 10, 
+               linetype = "dashed", 
+               color = "grey", size = 1) +
+    geom_hline(yintercept = 50, 
+               linetype = "dashed", 
+               color = "grey", size = 1) +
+    scale_color_manual(values = c("DonorA" = "#7b3294",
+                                  "DonorB" = "#008837")) +
+    theme_bw() +
+    theme() +
+    theme( legend.title = element_blank(),
+           legend.position = c(0.98, 0.28),  # Top right corner
+           legend.justification = c(1, 1),
+           axis.title = element_blank())  # Align legend box to top right)
+  
+  phylum_col= c(
+    "Firmicutes_A" = "#6a3d9a",
+    "Actinobacteriota" = "#33a02c",
+    "Bacteroidota" = "#1f78b4",
+    "Patescibacteria" = "#ff7f00",
+    "Firmicutes" = "#b2df8a",
+    "Desulfobacterota" = "#fdbf6f",
+    "Firmicutes_B" = "#ffff99",
+    "Deferribacterota" =  "#a6cee3",
+    "Proteobacteria" = "#e31a1c",
+    "Campylobacterota" = "#f781bf",
+    "NA" = "#808080"
+  )
+  
+  p2 <- table %>%
+    ggplot(aes(Contamination, Completeness, color=Phylum)) +
+    geom_point(size=3, alpha = 0.5,
+               position = position_dodge(0.2)) + 
+    scale_color_manual(values = phylum_col) +
+    scale_x_sqrt() + scale_y_sqrt() +
+    geom_vline(xintercept = 10, 
+               linetype = "dashed", 
+               color = "grey", size = 1) +
+    geom_hline(yintercept = 50, 
+               linetype = "dashed", 
+               color = "grey", size = 1) +
+    theme_bw() +
+    theme(axis.title = element_blank())
+  
+  cowplot::plot_grid(p1, p2, ncol = 2, rel_widths = c(1.2, 2))
+  
+  
+}
