@@ -602,7 +602,65 @@ write.table("../data/clean/paired_bray.txt", sep = "\t",
 
 ```
 
+## contig information
 
+```{r}
+
+read.csv("../Results/Assembly/Wild116_contigs.list",
+         header = FALSE) %>%
+  rename(NAME = "V1") %>%
+  mutate(Sample = paste("Wild116")) -> Wild116
+
+read.csv("../Results/Assembly/X608_contigs.list",
+         header = FALSE) %>%
+  rename(NAME = "V1") %>%
+  mutate(Sample = paste("X608")) -> X608
+
+cutoff=1000
+Wild116 %>%
+  bind_rows(X608) %>%
+  mutate(LENGTH = gsub(".*_length_", "", NAME)) %>%
+  mutate(LENGTH = gsub("_cov_.*", "", LENGTH)) %>%
+  # select those that are above 1K
+  filter(as.numeric(LENGTH) >= cutoff) %>%
+  group_by(Sample) %>%
+  mutate(Cumulative= cumsum(as.numeric(LENGTH))) %>%
+  mutate(Contigid = row_number()) %>%
+  mutate(Cumulative = Cumulative / 1000000) %>%
+  mutate(Contigid2 = Contigid / 1000) %>%
+  mutate(Sample = case_when(Sample == "Wild116" ~ paste("DonorB"),
+                            Sample == "X608" ~ paste("DonorA"),
+                            TRUE ~ paste("idk"))) %>%
+  mutate(Method = paste("Single")) %>%
+  select(Sample:Method, -LENGTH)-> single_assem
+
+fai_head <- c("NAME", "LENGTH", "OFFSET",
+              "LINE_BLEN", "LINE_FBLEN")
+
+read.csv("../Results/Assembly/DonA_and_B_contigs_1k.fa.fai", 
+         sep = "\t", header  = F) -> contig
+
+colnames(contig) <- fai_head
+contig %>%
+  mutate(Sample = gsub("_pool__.*", "", NAME)) %>%
+  group_by(Sample) %>%
+  mutate(Cumulative= cumsum(as.numeric(LENGTH))) %>%
+  group_by(Sample) %>%
+  mutate(Contigid = row_number()) %>%
+  mutate(Cumulative = Cumulative / 1000000) %>%
+  mutate(Contigid2 = Contigid / 1000) %>%
+   mutate(Sample = case_when(Sample == "DonA" ~ paste("DonorA"),
+                            Sample == "DonB" ~ paste("DonorB"),
+                            TRUE ~ paste("idk"))) %>%
+  mutate(Method = paste("Co-assembly")) %>%
+  select(Sample:Method)-> co_assem
+
+single_assem %>%
+  bind_rows(co_assem) %>%
+write.table("../data/clean/assembly_quality.txt", sep = "\t", 
+            row.names = F, quote = F)
+
+```
 
 
 

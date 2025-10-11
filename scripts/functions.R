@@ -525,6 +525,23 @@ vis.pairBray <- function(Paired_bray = "../data/clean/paired_bray.txt",
   
 }
 
-
+vis.contigs <- function(
+    cumulative_df = "../data/clean/assembly_quality.txt") {
+  
+  read.csv(cumulative_df, sep = "\t") %>%
+  mutate(Method = factor(Method, levels = c("Single", "Co-assembly"))) %>%
+    ggplot(aes(Contigid2, Cumulative, color=Sample)) +
+    geom_line(size=2) +
+    facet_grid(~Method+Sample, space = "free", scales = "free") +
+    theme_bw() +
+    scale_color_manual(values = c("DonorA" = "#7b3294",
+                                  "DonorB" = "#008837")) +
+    ggtitle("Cumulative length of assembled contigs over 1kb") +
+    ylab("Cumulative length in Mbp") +
+    xlab("Contigs are ordered from largest (contig #1) to smallest (x1000).") +
+    theme(text = element_text(size= 10),
+          axis.text.x = element_text(angle = 0),
+          legend.position = "none", legend.title = element_blank())
+}
 
 
