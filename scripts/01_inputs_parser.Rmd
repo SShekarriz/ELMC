@@ -662,7 +662,132 @@ write.table("../data/clean/assembly_quality.txt", sep = "\t",
 
 ```
 
+## generate iTOL annotation file
 
+```{r}
+
+
+BinQT <- read.csv("../data/clean/binQT.txt", sep = "\t")
+
+# Prepare the annotation lines
+header <- c(
+  "DATASET_LABELS",
+  "SEPARATOR TAB",
+  "DATASET_NAME\tSpecies Labels",
+  "FIELD_LABELS\tSpecies",
+  "FIELD_COLORS\t#ff0000",
+  "DATA"
+)
+
+# Select and rename columns
+tip_labels <- BinQT %>%
+  select(BinLab, label) %>%
+  rename(tip_id = BinLab, species_label = label)
+
+# Create label lines
+label_lines <- paste(tip_labels$tip_id, tip_labels$species_label, sep = "\t")
+
+# Combine header and data
+itol_annotation <- c(header, label_lines)
+
+# Write to file
+writeLines(itol_annotation, "../data/clean/itol_labels.txt")
+
+
+```
+
+
+```{r}
+
+BinQT <- read.csv("../data/clean/binQT.txt", sep = "\t")
+
+# Define phylum colors
+phylum_col <- c(
+  "Firmicutes_A" = "#6a3d9a",
+  "Actinobacteriota" = "#33a02c",
+  "Bacteroidota" = "#1f78b4",
+  "Patescibacteria" = "#ff7f00",
+  "Firmicutes" = "#b2df8a",
+  "Desulfobacterota" = "#fdbf6f",
+  "Firmicutes_B" = "#ffff99",
+  "Deferribacterota" = "#a6cee3",
+  "Proteobacteria" = "#e31a1c",
+  "Campylobacterota" = "#f781bf",
+  "NA" = "#808080"
+)
+
+# Prepare header
+header <- c(
+  "DATASET_STYLE",
+  "#Style datasets allow the customization of branch and leaf label colors and styles.",
+  "SEPARATOR COMMA",
+  "DATASET_LABEL,Phylum Branch Colors",
+  "COLOR,#000000",
+  "DATA"
+)
+
+# Create style lines for each tip with branch coloring
+style_lines <- BinQT %>%
+  mutate(branch_color = phylum_col[as.character(Phylum)]) %>%
+  mutate(branch_color = ifelse(is.na(branch_color), "#000000", branch_color)) %>%
+  mutate(line = paste(BinLab, "branch", "node", branch_color, "2", "normal", sep = ",")) %>%
+  pull(line)
+
+# Combine header and data
+itol_branch_style <- c(header, style_lines)
+
+# Write to file
+writeLines(itol_branch_style, "../data/clean/itol_phylum_branch_colors.txt")
+
+
+```
+
+
+```{r}
+
+BinQT <- read.csv("../data/clean/binQT.txt", sep = "\t")
+
+# Define phylum colors
+phylum_col <- c(
+  "Firmicutes_A" = "#6a3d9a",
+  "Actinobacteriota" = "#33a02c",
+  "Bacteroidota" = "#1f78b4",
+  "Patescibacteria" = "#ff7f00",
+  "Firmicutes" = "#b2df8a",
+  "Desulfobacterota" = "#fdbf6f",
+  "Firmicutes_B" = "#ffff99",
+  "Deferribacterota" = "#a6cee3",
+  "Proteobacteria" = "#e31a1c",
+  "Campylobacterota" = "#f781bf",
+  "NA" = "#808080"
+)
+
+# Prepare header for iTOL color strip file
+header <- c(
+  "DATASET_COLORSTRIP",
+  "SEPARATOR COMMA",
+  "DATASET_LABEL,Phylum Strip Colors",
+  "COLOR,#000000",
+  "STRIP_WIDTH,25",
+  "MARGIN,5",
+  "SHOW_INTERNAL,0",
+  "DATA"
+)
+
+# Create strip lines for each tip
+strip_lines <- BinQT %>%
+  mutate(strip_color = phylum_col[as.character(Phylum)]) %>%
+  mutate(strip_color = ifelse(is.na(strip_color), "#000000", strip_color)) %>%
+  mutate(line = paste(BinLab, strip_color, Phylum, sep = ",")) %>%
+  pull(line)
+
+# Combine header and data
+itol_strip <- c(header, strip_lines)
+
+# Write to file
+writeLines(itol_strip, "../data/clean/itol_phylum_colorstrip.txt")
+
+```
 
 
 
