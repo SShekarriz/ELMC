@@ -134,7 +134,7 @@ ggplot(don_df, aes(Donor, emmean)) +
               alpha = 0.7, height = 0, width = 0.2) +
   geom_point(size = 2) +
   geom_linerange(aes(ymin = lower.CL, ymax = upper.CL)) +
-  scale_colour_manual(values = c('goldenrod3', 'skyblue3'))
+  scale_colour_manual(values = c('#7b3294', '#008837'))
 ```
 
 Donor A is overall more effective than Donor B at colonizing mice (p < 0.0001).

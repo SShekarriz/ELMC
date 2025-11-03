@@ -151,6 +151,41 @@ ggsave("../figs/MAG_pheatmap.pdf", plot = fig, width = 9, height = 9)
 
 ```
 
+```{r}
+
+tree <- read.tree("../data/clean/MAGs_DonA_and_B.tree")
+unique(tree$tip.label) -> ids
+
+# Step 1: Read and filter the data
+table <- read.csv("../data/clean/MAGCover.txt", sep = "\t") %>%
+  filter(feature %in% ids)
+
+# Step 2: Pivot to wide format for distance calculation
+wide_table <- table %>%
+  pivot_wider(names_from = feature, values_from = coverage, values_fill = 0) %>%
+  column_to_rownames("Sample")
+
+# Step 3: Calculate distance matrix and perform UPGMA clustering
+dist_matrix <- dist(wide_table, method = "euclidean")
+hc <- hclust(dist_matrix, method = "average")  # UPGMA uses 'average' linkage
+
+# Step 4: Convert to phylo object and plot
+tree <- as.phylo(hc)
+write.tree(tree, "../data/clean/Samples_DonA_and_B.tree")
+plot(tree, main = "UPGMA Tree of Samples", cex = 0.8)
+
+
+
+ggplot(table, aes(Sample, feature, fill=coverage)) +
+  geom_tile() +
+  theme_bw() +
+  theme(axis.text = element_blank())
+
+```
+
+
+
+
 
 ```{r}
 

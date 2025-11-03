@@ -9,6 +9,7 @@ for functions and analyses
 
 ```{r}
 
+
 library(tidyverse)
 library(ape) # for reading/writing tree files
 #load functions
@@ -188,7 +189,86 @@ DonB.tree <- read.tree("../Results/Assembly/DonB.bac120.user_msa.tree")
 DonB.tree$tip.label <- gsub("bin.", "DonB_bin_", DonB.tree$tip.label)
 write.tree(DonB.tree, "../data/clean/MAGs_DonB.tree")
 
+DonAB.tree <- read.tree("../Results/Assembly/DonA_and_DonB.bac120.user_msa.tree")
+DonAB.tree$tip.label <- gsub("DonA.bin.", "DonA_bin_", DonAB.tree$tip.label)
+DonAB.tree$tip.label <- gsub("DonB.bin.", "DonB_bin_", DonAB.tree$tip.label)
+write.tree(DonAB.tree, "../data/clean/MAGs_DonA_and_B.tree")
+
 ```
+
+a UPGMA tree for clustering samples based on MAGs coverage information
+
+```{r}
+
+tree <- read.tree("../data/clean/MAGs_DonA_and_B.tree")
+unique(tree$tip.label) -> ids
+
+table <- read.csv("../data/clean/MAGCover.txt", sep = "\t") %>%
+  filter(feature %in% ids)
+
+wide_table <- table %>%
+  pivot_wider(names_from = feature, values_from = coverage, values_fill = 0) %>%
+  column_to_rownames("Sample")
+
+#Calculate distance matrix and perform UPGMA clustering
+dist_matrix <- dist(wide_table, method = "euclidean")
+hc <- hclust(dist_matrix, method = "average")  # UPGMA uses 'average' linkage
+
+#Convert to phylo object and plot
+tree <- as.phylo(hc)
+write.tree(tree, "../data/clean/Samples_DonA_and_B.tree")
+
+```
+
+annotation file for iTOL heatmap
+
+```{r}
+
+
+tree <- read.tree("../data/clean/MAGs_DonA_and_B.tree")
+ids <- unique(tree$tip.label)
+
+# Read and filter coverage table
+table <- read.csv("../data/clean/MAGCover.txt", sep = "\t") %>%
+  filter(feature %in% ids)
+
+# Pivot to wide format
+heatmap_data <- table %>%
+  spread(Sample, coverage, fill = "X") %>%
+  arrange(feature)
+
+# Extract sample names
+samples <- colnames(heatmap_data)[-1]  # exclude 'feature'
+
+# Read and clean the Newick tree
+upgma_tree <- readLines("../data/clean/Samples_DonA_and_B.tree") %>%
+  paste(collapse = "") %>%
+  str_replace_all("\\s+", "")  # remove spaces and newlines
+# Create header with TAB separator
+header <- c(
+  "DATASET_HEATMAP",
+  "SEPARATOR TAB",
+  "DATASET_LABEL\texample_heatmap",
+  "COLOR\t#ff0000",
+  paste("FIELD_LABELS", paste(samples, collapse = "\t"), sep = "\t"),
+  paste("FIELD_TREE", upgma_tree, sep = "\t"),
+  "DATA"
+)
+
+# Create data section (tab-separated)
+data_lines <- heatmap_data %>%
+  mutate(across(-feature, ~ ifelse(is.na(.), "X", as.character(.)))) %>%
+  rowwise() %>%
+  mutate(line = paste(c_across(everything()), collapse = "\t")) %>%
+  pull(line)
+
+# Write to file
+writeLines(c(header, data_lines),
+           "../data/clean/itol_heatmap_annotation_tab.txt",
+           useBytes = TRUE)
+
+```
+
 
 ## Gene data
 
