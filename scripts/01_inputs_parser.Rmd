@@ -200,15 +200,26 @@ a UPGMA tree for clustering samples based on MAGs coverage information
 
 ```{r}
 
+read.csv("../data/clean/mapfile.txt", sep = "\t") %>%
+  mutate(Group = gsub("Parent", "P", Group),
+         Group = gsub("Donor", "", Group)) %>%
+  group_by(Group) %>%
+  mutate(SG= paste(Group, row_number(), sep = "-")) %>%
+  ungroup() %>%
+  mutate(SG= gsub("A-1", "A", SG),
+         SG= gsub("B-1", "B", SG)) %>%
+  select(Sample, SG) -> mapfile
+
 tree <- read.tree("../data/clean/MAGs_DonA_and_B.tree")
 unique(tree$tip.label) -> ids
 
 table <- read.csv("../data/clean/MAGCover.txt", sep = "\t") %>%
-  filter(feature %in% ids)
+  filter(feature %in% ids) %>%
+  left_join(mapfile) %>% select(-Sample)
 
 wide_table <- table %>%
   pivot_wider(names_from = feature, values_from = coverage, values_fill = 0) %>%
-  column_to_rownames("Sample")
+  column_to_rownames("SG")
 
 #Calculate distance matrix and perform UPGMA clustering
 dist_matrix <- dist(wide_table, method = "euclidean")
@@ -224,17 +235,27 @@ annotation file for iTOL heatmap
 
 ```{r}
 
+read.csv("../data/clean/mapfile.txt", sep = "\t") %>%
+  mutate(Group = gsub("Parent", "P", Group),
+         Group = gsub("Donor", "", Group)) %>%
+  group_by(Group) %>%
+  mutate(SG= paste(Group, row_number(), sep = "-")) %>%
+  ungroup() %>%
+  mutate(SG= gsub("A-1", "A", SG),
+         SG= gsub("B-1", "B", SG)) %>%
+  select(Sample, SG) -> mapfile
 
 tree <- read.tree("../data/clean/MAGs_DonA_and_B.tree")
 ids <- unique(tree$tip.label)
 
 # Read and filter coverage table
 table <- read.csv("../data/clean/MAGCover.txt", sep = "\t") %>%
-  filter(feature %in% ids)
+  filter(feature %in% ids) %>%
+  left_join(mapfile) %>% select(-Sample)
 
 # Pivot to wide format
 heatmap_data <- table %>%
-  spread(Sample, coverage, fill = "X") %>%
+  spread(SG, coverage, fill = "X") %>%
   arrange(feature)
 
 # Extract sample names
