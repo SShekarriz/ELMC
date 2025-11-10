@@ -9,7 +9,6 @@ for functions and analyses
 
 ```{r}
 
-
 library(tidyverse)
 library(ape) # for reading/writing tree files
 #load functions
@@ -639,7 +638,8 @@ coloniz %>%
     TRUE ~ paste0("none")
     )) %>%
   mutate(order = factor(order, levels = c("donor", "non-donor",
-                                          "parent", "mixed-parent", "non-parent",
+                                          "parent", "mixed-parent", 
+                                          "non-parent",
                                           "first", "mixed", "second"))) -> coloniz
 
 write.table(coloniz, "../data/clean/coloniz_visual.txt", sep = "\t",
@@ -890,7 +890,101 @@ writeLines(itol_strip, "../data/clean/itol_phylum_colorstrip.txt")
 
 ```
 
+## commonly colonized genes
+
+```{r}
+
+mapfile <- read.csv("../data/clean/mapfile.txt", sep = "\t")
+mapfile %>%
+  filter(Group %in% c("AB", "BA", "ABAB")) %>%
+  pull(Sample) -> Spup
+
+cutoff_pres <- 90
+g <- read.csv("../data/clean/geneCover.txt", sep = "\t")
+
+# Join with group info
+g <- g %>%
+  filter(Sample %in% Spup) %>%
+  left_join(mapfile %>% select(Sample, Group), by = "Sample")
+
+# Filter for coverage >= cutoff
+g_filtered <- g %>%
+  filter(coverage >= cutoff_pres)
+
+# Count how many samples per group each gene appears in
+gene_group_counts <- g_filtered %>%
+  group_by(Group, feature) %>%
+  summarise(n_detected = n_distinct(Sample), .groups = "drop")
+
+# Total samples per group
+samples_per_group <- mapfile %>%
+  filter(Sample %in% Spup) %>%
+  group_by(Group) %>%
+  summarise(n_total = n_distinct(Sample), .groups = "drop")
+
+# Join and filter for genes detected in all of samples per group (100%)
+common_genes <- gene_group_counts %>%
+  left_join(samples_per_group, by = "Group") %>%
+  filter(n_detected / n_total >= 1) %>%
+  mutate(temp=feature) %>%
+  separate(temp, c("Donor", "gene_id"), sep = "__") %>%
+  mutate(order = case_when(
+    # pups
+    Donor == "DonA" & Group == "AB" ~ paste0("first"),
+    Donor == "DonA" & Group == "BA" ~ paste0("second"),
+    Donor == "DonB" & Group == "BA" ~ paste0("first"),
+    Donor == "DonB" & Group == "AB" ~ paste0("second"),
+    Group == "ABAB" ~ paste("mixed"),
+    TRUE ~ paste("none")))
+
+common_genes %>%
+  select(feature, Group) %>% mutate(n = paste(1)) %>%
+  spread(Group, n) %>%
+  mutate(ptype= case_when(AB == 1 & BA == 1 & ABAB == 1 ~ paste("All"),
+                         AB == 1 & is.na(BA) & is.na(ABAB) ~ paste("AB"),
+                         AB == 1 & BA == 1 & is.na(ABAB) ~ paste("AB-BA"),
+                         AB == 1 & is.na(BA) & ABAB == 1 ~ paste("AB-ABAB"),
+                         is.na(AB) & BA == 1 & is.na(ABAB) ~ paste("BA"),
+                         is.na(AB) & BA == 1 & ABAB == 1 ~ paste("BA-ABAB"),
+                         is.na(AB) & is.na(BA) & ABAB == 1 ~ paste("ABAB"),
+                         TRUE ~ paste("other"))) %>%
+  select(feature, ptype) -> common_genes_overlap
+
+common_genes %>%
+  left_join(common_genes_overlap) -> common_genes
+
+common_genes %>%
+  select(feature) %>% distinct() %>%
+  write.table("../data/clean/commonly_colonized_genes.txt", 
+            sep = "\t", row.names = F, col.names = F, quote = F)
+
+```
 
 
+```{r}
+
+common_genes %>%
+  select(Donor, gene_id, order) %>%
+  group_by(Donor, order) %>% summarise(n = n()) %>%
+  ggplot(aes(order, n, color = Donor)) +
+  geom_point() + geom_line(aes(group = Donor)) +
+  theme_bw() +
+  ylab("commonly colonized genes")
+  
+
+
+```
+
+
+```{r}
+
+ggplot(common_genes, aes(gene_id, Group, fill=Donor)) +
+  geom_tile() +
+  facet_grid(~ptype, scales = "free", space = "free") +
+  theme_classic() +
+  theme(axis.text.x = element_blank(),
+        strip.text.x = element_text(angle = 90))
+
+```
 
 
